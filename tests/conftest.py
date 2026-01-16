@@ -53,7 +53,7 @@ def _create_test_user(app, username="testuser", password="testpass123"):
 def test_user(app):
     """Create a test user and return a simple object."""
     user_id, username = _create_test_user(app)
-    return type('TestUser', (), {'id': user_id, 'username': username})()
+    return type("TestUser", (), {"id": user_id, "username": username})()
 
 
 @pytest.fixture
@@ -102,4 +102,4 @@ def test_message(app):
         db.session.commit()
         message_id = message.id
         # Return simple object with id and content attributes
-        return type('TestMessage', (), {'id': message_id, 'content': 'Test message'})()
+        return type("TestMessage", (), {"id": message_id, "content": "Test message"})()

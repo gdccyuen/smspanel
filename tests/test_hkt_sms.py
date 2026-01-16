@@ -1,11 +1,9 @@
 """Tests for HKT SMS service."""
 
-import pytest
 from unittest.mock import patch, MagicMock
 from requests.exceptions import RequestException
 
-from ccdemo import create_app
-from ccdemo.services.hkt_sms import HKTSMSService, HKTSMSError
+from ccdemo.services.hkt_sms import HKTSMSService
 
 
 class TestHKTSMSService:

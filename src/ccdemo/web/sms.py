@@ -51,19 +51,34 @@ def compose():
         # Enquiry number is mandatory and must match regex
         if not enquiry_number:
             flash("Enquiry Number is required.", "error")
-            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
+            return render_template(
+                "compose.html",
+                content=content,
+                recipients=recipients_input,
+                enquiry_number=enquiry_number,
+            )
 
         if not ENQUIRY_REGEX.match(enquiry_number):
             flash(
                 "Invalid Enquiry Number format. Must be in format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678).",
-                "error"
+                "error",
             )
-            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
+            return render_template(
+                "compose.html",
+                content=content,
+                recipients=recipients_input,
+                enquiry_number=enquiry_number,
+            )
 
         # Message field is mandatory
         if not content:
             flash("Message content is required.", "error")
-            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
+            return render_template(
+                "compose.html",
+                content=content,
+                recipients=recipients_input,
+                enquiry_number=enquiry_number,
+            )
 
         # Parse recipients (one per row, ignore empty lines)
         recipients = [r.strip() for r in recipients_input.split("\n") if r.strip()]
@@ -71,7 +86,12 @@ def compose():
         # Recipients must have at least one number
         if not recipients:
             flash("At least one recipient is required.", "error")
-            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
+            return render_template(
+                "compose.html",
+                content=content,
+                recipients=recipients_input,
+                enquiry_number=enquiry_number,
+            )
 
         # Validate each phone number matches regex \d{4}\s?\d{4}
         invalid_numbers = []
@@ -86,9 +106,14 @@ def compose():
             flash(
                 f"Invalid phone number format: {', '.join(invalid_numbers)}. "
                 "Each number must be in format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678).",
-                "error"
+                "error",
             )
-            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
+            return render_template(
+                "compose.html",
+                content=content,
+                recipients=recipients_input,
+                enquiry_number=enquiry_number,
+            )
 
         recipients = valid_recipients
 
@@ -131,7 +156,10 @@ def compose():
         if all_sent:
             flash(f"Successfully sent {result['total']} message(s).", "success")
         elif result["successful"] > 0:
-            flash(f"Partially sent: {result['successful']} successful, {result['failed']} failed.", "warning")
+            flash(
+                f"Partially sent: {result['successful']} successful, {result['failed']} failed.",
+                "warning",
+            )
         else:
             flash("Failed to send messages. Please try again.", "error")
 
@@ -157,7 +185,9 @@ def history():
     if search:
         query = query.filter(Message.content.ilike(f"%{search}%"))
 
-    messages = query.order_by(Message.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    messages = query.order_by(Message.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
 
     return render_template(
         "history.html",

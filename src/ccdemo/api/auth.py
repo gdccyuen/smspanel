@@ -3,9 +3,7 @@
 import jwt
 from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_user
 
-from .. import db, login_manager
 from ..models import User
 
 api_auth_bp = Blueprint("api_auth", __name__)
@@ -38,7 +36,8 @@ def login() -> tuple:
     token_payload = {
         "user_id": user.id,
         "username": user.username,
-        "exp": datetime.now(timezone.utc) + current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES", timedelta(hours=24)),
+        "exp": datetime.now(timezone.utc)
+        + current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES", timedelta(hours=24)),
     }
 
     token = jwt.encode(token_payload, current_app.config["JWT_SECRET_KEY"], algorithm="HS256")

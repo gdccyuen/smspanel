@@ -14,7 +14,12 @@ class HKTSMSError(Exception):
 class HKTSMSService:
     """Service for interacting with HKT SMS API."""
 
-    def __init__(self, base_url: Optional[str] = None, application_id: Optional[str] = None, sender_number: Optional[str] = None):
+    def __init__(
+        self,
+        base_url: Optional[str] = None,
+        application_id: Optional[str] = None,
+        sender_number: Optional[str] = None,
+    ):
         """Initialize the HKT SMS service.
 
         Args:
@@ -29,7 +34,9 @@ class HKTSMSService:
     def _get_config(self) -> Dict[str, str]:
         """Get configuration from Flask app if not set."""
         if self.base_url is None:
-            self.base_url = current_app.config.get("HKT_BASE_URL", "https://cst01.1010.com.hk/gateway/gateway.jsp")
+            self.base_url = current_app.config.get(
+                "HKT_BASE_URL", "https://cst01.1010.com.hk/gateway/gateway.jsp"
+            )
         if self.application_id is None:
             self.application_id = current_app.config.get("HKT_APPLICATION_ID", "LabourDept")
         if self.sender_number is None:
@@ -83,7 +90,9 @@ class HKTSMSService:
             return {
                 "success": False,
                 "error": str(e),
-                "status_code": getattr(e.response, "status_code", None) if hasattr(e, "response") else None,
+                "status_code": getattr(e.response, "status_code", None)
+                if hasattr(e, "response")
+                else None,
             }
 
     def send_bulk(self, recipients: list[str], message: str) -> Dict[str, any]:

@@ -19,12 +19,12 @@
             </div>
             <div class="info-row">
                 <span>Created:</span>
-                <span>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                <span>{{ message.created_at|hkt }}</span>
             </div>
             {% if message.sent_at %}
                 <div class="info-row">
                     <span>Sent:</span>
-                    <span>{{ message.sent_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                    <span>{{ message.sent_at|hkt }}</span>
                 </div>
             {% endif %}
             <div class="info-row">

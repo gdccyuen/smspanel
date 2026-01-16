@@ -3,7 +3,6 @@
 import jwt
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required
 
 from .. import db
 from ..models import User, Message, Recipient

@@ -19,7 +19,9 @@ class User(UserMixin, db.Model):
     api_key = db.Column(db.String(64), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
-    messages = db.relationship("Message", backref="user", lazy="dynamic", cascade="all, delete-orphan")
+    messages = db.relationship(
+        "Message", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str) -> None:
         """Hash and set the user's password."""
@@ -51,7 +53,9 @@ class Message(db.Model):
     sent_at = db.Column(db.DateTime, nullable=True)
     hkt_response = db.Column(db.Text, nullable=True)
 
-    recipients = db.relationship("Recipient", backref="message", lazy="dynamic", cascade="all, delete-orphan")
+    recipients = db.relationship(
+        "Recipient", backref="message", lazy="dynamic", cascade="all, delete-orphan"
+    )
 
     @property
     def recipient_count(self) -> int:

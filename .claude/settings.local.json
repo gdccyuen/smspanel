@@ -6,7 +6,13 @@
       "Bash(git commit:*)",
       "Bash(pip install:*)",
       "Bash(pytest:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(curl:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InVhdF91c2VyIiwiZXhwIjoxNzY4NjUxNDcwfQ.Ri87kLfyf6V5Lk5INOj6WTMtMCcaZ2Ls8ut-A-zF9l0\")",
+      "Bash(git checkout:*)",
+      "Bash(ruff format:*)",
+      "Bash(ruff check .)",
+      "Bash(ruff check . --fix)"
     ]
   }
 }

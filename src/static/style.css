@@ -138,6 +138,13 @@ body {
     color: #7f8c8d;
 }
 
+.form-group .error-message {
+    display: block;
+    margin-top: 5px;
+    color: #e74c3c;
+    font-size: 0.875rem;
+}
+
 .form-actions {
     display: flex;
     gap: 10px;

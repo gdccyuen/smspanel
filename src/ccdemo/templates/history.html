@@ -38,7 +38,7 @@
                 <div class="message-card">
                     <div class="message-header">
                         <span class="status status-{{ msg.status }}">{{ msg.status|upper }}</span>
-                        <span class="timestamp">{{ msg.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                        <span class="timestamp">{{ msg.created_at|hkt }}</span>
                     </div>
                     <div class="message-content">
                         {{ msg.content }}

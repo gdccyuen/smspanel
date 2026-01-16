@@ -1,9 +1,7 @@
 """Tests for API endpoints."""
 
-import json
-import pytest
 from ccdemo import db
-from ccdemo.models import User, Message, Recipient
+from ccdemo.models import Message, Recipient
 
 
 class TestAuthAPI:
@@ -110,7 +108,9 @@ class TestSMSAPI:
 
     def test_send_bulk_sms_missing_fields(self, client, auth_headers):
         """Test sending bulk SMS with missing fields."""
-        response = client.post("/api/sms/send-bulk", json={"recipients": ["85212345678"]}, headers=auth_headers)
+        response = client.post(
+            "/api/sms/send-bulk", json={"recipients": ["85212345678"]}, headers=auth_headers
+        )
         assert response.status_code == 400
 
     def test_get_message_unauthorized(self, client, test_message):

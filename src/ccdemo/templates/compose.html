@@ -7,18 +7,6 @@
     <h1>Compose SMS</h1>
     <form method="POST" class="compose-form">
         <div class="form-group">
-            <label for="enquiry_number">Enquiry Number</label>
-            <input
-                type="text"
-                id="enquiry_number"
-                name="enquiry_number"
-                required
-                placeholder="1234 5678"
-                value="{{ enquiry_number }}"
-            >
-            <small>Format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678)</small>
-        </div>
-        <div class="form-group">
             <label for="recipients">Recipients</label>
             <textarea
                 id="recipients"
@@ -26,7 +14,10 @@
                 rows="4"
                 required
                 placeholder="Enter phone numbers (one per line)&#10;Example:&#10;1234 5678&#10;12345678"
+                onblur="validateRecipients()"
+                oninput="updateCharCount()"
             >{{ recipients }}</textarea>
+            <small id="recipients-error" class="error-message"></small>
             <small>Enter one phone number per line. Format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678)</small>
         </div>
         <div class="form-group">
@@ -37,8 +28,26 @@
                 rows="4"
                 required
                 placeholder="Enter your message here..."
+                onblur="validateContent()"
+                oninput="updateCharCount()"
             >{{ content }}</textarea>
+            <small id="content-error" class="error-message"></small>
             <small id="char-count">0 characters</small>
+        </div>
+        <div class="form-group">
+            <label for="enquiry_number">Enquiry Number</label>
+            <input
+                type="text"
+                id="enquiry_number"
+                name="enquiry_number"
+                required
+                placeholder="1234 5678"
+                value="{{ enquiry_number }}"
+                onblur="validateEnquiryNumber()"
+                oninput="updateCharCount()"
+            >
+            <small id="enquiry-error" class="error-message"></small>
+            <small>Format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678)</small>
         </div>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Send SMS</button>
@@ -50,16 +59,70 @@
 <script>
     const contentTextarea = document.getElementById('content');
     const enquiryNumberInput = document.getElementById('enquiry_number');
+    const recipientsTextarea = document.getElementById('recipients');
     const charCount = document.getElementById('char-count');
+
+    const PHONE_REGEX = /^\d{4}\s?\d{4}$/;
+    const ENQUIRY_REGEX = /^\d{4}\s?\d{4}$/;
 
     function updateCharCount() {
         const contentLen = contentTextarea.value.length;
         const enquiryLen = enquiryNumberInput.value.length;
-        const totalLen = contentLen > 0 || enquiryLen > 0 ? contentLen + 4 + enquiryLen : 0; // " EN:" prefix = 4 chars
+        // Total SMS length excluding " EN:" suffix
+        const totalLen = contentLen + enquiryLen;
         charCount.textContent = totalLen + ' characters (SMS)';
+    }
+
+    function clearError(elementId) {
+        document.getElementById(elementId).textContent = '';
+    }
+
+    function showError(elementId, message) {
+        document.getElementById(elementId).textContent = message;
+    }
+
+    function validateRecipients() {
+        const value = recipientsTextarea.value.trim();
+        if (!value) {
+            showError('recipients-error', 'At least one recipient is required.');
+            return false;
+        }
+        const lines = value.split('\n').map(l => l.trim()).filter(l => l);
+        const invalidNumbers = lines.filter(r => !PHONE_REGEX.test(r));
+        if (invalidNumbers.length > 0) {
+            showError('recipients-error', 'Invalid format: ' + invalidNumbers.join(', '));
+            return false;
+        }
+        clearError('recipients-error');
+        return true;
+    }
+
+    function validateContent() {
+        const value = contentTextarea.value.trim();
+        if (!value) {
+            showError('content-error', 'Message content is required.');
+            return false;
+        }
+        clearError('content-error');
+        return true;
+    }
+
+    function validateEnquiryNumber() {
+        const value = enquiryNumberInput.value.trim();
+        if (!value) {
+            showError('enquiry-error', 'Enquiry Number is required.');
+            return false;
+        }
+        if (!ENQUIRY_REGEX.test(value)) {
+            showError('enquiry-error', 'Invalid format. Use: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678).');
+            return false;
+        }
+        clearError('enquiry-error');
+        return true;
     }
 
     contentTextarea.addEventListener('input', updateCharCount);
     enquiryNumberInput.addEventListener('input', updateCharCount);
+    recipientsTextarea.addEventListener('input', updateCharCount);
 </script>
 {% endblock %}

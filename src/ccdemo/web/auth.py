@@ -1,7 +1,7 @@
 """Web UI authentication routes."""
 
 from flask import Blueprint, request, render_template, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, login_required
 
 from .. import db, login_manager
 from ..models import User
@@ -78,4 +78,4 @@ def logout():
     """User logout."""
     logout_user()
     flash("You have been logged out.", "info")
-    return redirect(url_for("web.login"))
+    return redirect(url_for("web.web_auth.login"))

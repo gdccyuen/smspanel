@@ -32,16 +32,21 @@ class Config:
 
 class DevelopmentConfig(Config):
     """Development configuration."""
+
     DEBUG = True
+    # Use mock HKT API for development by default
+    HKT_BASE_URL = os.getenv("HKT_BASE_URL", "http://127.0.0.1:5555/gateway/gateway.jsp")
 
 
 class ProductionConfig(Config):
     """Production configuration."""
+
     DEBUG = False
 
 
 class TestingConfig(Config):
     """Testing configuration."""
+
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False
