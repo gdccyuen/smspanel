@@ -13,6 +13,8 @@ web_sms_bp = Blueprint("web_sms", __name__)
 
 # Phone number regex: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678)
 PHONE_REGEX = re.compile(r"^\d{4}\s?\d{4}$")
+# Enquiry number regex: 4 digits, optional space, 4 digits
+ENQUIRY_REGEX = re.compile(r"^\d{4}\s?\d{4}$")
 
 
 @web_sms_bp.route("/")
@@ -44,11 +46,24 @@ def compose():
     if request.method == "POST":
         content = request.form.get("content", "").strip()
         recipients_input = request.form.get("recipients", "").strip()
+        enquiry_number = request.form.get("enquiry_number", "").strip()
+
+        # Enquiry number is mandatory and must match regex
+        if not enquiry_number:
+            flash("Enquiry Number is required.", "error")
+            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
+
+        if not ENQUIRY_REGEX.match(enquiry_number):
+            flash(
+                "Invalid Enquiry Number format. Must be in format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678).",
+                "error"
+            )
+            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
 
         # Message field is mandatory
         if not content:
             flash("Message content is required.", "error")
-            return render_template("compose.html", content=content, recipients=recipients_input)
+            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
 
         # Parse recipients (one per row, ignore empty lines)
         recipients = [r.strip() for r in recipients_input.split("\n") if r.strip()]
@@ -56,7 +71,7 @@ def compose():
         # Recipients must have at least one number
         if not recipients:
             flash("At least one recipient is required.", "error")
-            return render_template("compose.html", content=content, recipients=recipients_input)
+            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
 
         # Validate each phone number matches regex \d{4}\s?\d{4}
         invalid_numbers = []
@@ -73,12 +88,15 @@ def compose():
                 "Each number must be in format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678).",
                 "error"
             )
-            return render_template("compose.html", content=content, recipients=recipients_input)
+            return render_template("compose.html", content=content, recipients=recipients_input, enquiry_number=enquiry_number)
 
         recipients = valid_recipients
 
+        # Append enquiry number to message content
+        sms_content = f"{content} EN:{enquiry_number}"
+
         # Create message record
-        message = Message(user_id=current_user.id, content=content, status="pending")
+        message = Message(user_id=current_user.id, content=sms_content, status="pending")
         db.session.add(message)
         db.session.flush()
 
@@ -91,7 +109,7 @@ def compose():
 
         # Send SMS via HKT
         sms_service = HKTSMSService()
-        result = sms_service.send_bulk(recipients, content)
+        result = sms_service.send_bulk(recipients, sms_content)
 
         # Update records based on result
         all_sent = result["success"]

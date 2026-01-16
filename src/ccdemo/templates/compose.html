@@ -7,6 +7,18 @@
     <h1>Compose SMS</h1>
     <form method="POST" class="compose-form">
         <div class="form-group">
+            <label for="enquiry_number">Enquiry Number</label>
+            <input
+                type="text"
+                id="enquiry_number"
+                name="enquiry_number"
+                required
+                placeholder="1234 5678"
+                value="{{ enquiry_number }}"
+            >
+            <small>Format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678)</small>
+        </div>
+        <div class="form-group">
             <label for="recipients">Recipients</label>
             <textarea
                 id="recipients"
@@ -37,10 +49,17 @@
 
 <script>
     const contentTextarea = document.getElementById('content');
+    const enquiryNumberInput = document.getElementById('enquiry_number');
     const charCount = document.getElementById('char-count');
 
-    contentTextarea.addEventListener('input', function() {
-        charCount.textContent = this.value.length + ' characters';
-    });
+    function updateCharCount() {
+        const contentLen = contentTextarea.value.length;
+        const enquiryLen = enquiryNumberInput.value.length;
+        const totalLen = contentLen > 0 || enquiryLen > 0 ? contentLen + 4 + enquiryLen : 0; // " EN:" prefix = 4 chars
+        charCount.textContent = totalLen + ' characters (SMS)';
+    }
+
+    contentTextarea.addEventListener('input', updateCharCount);
+    enquiryNumberInput.addEventListener('input', updateCharCount);
 </script>
 {% endblock %}
