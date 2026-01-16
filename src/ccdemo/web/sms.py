@@ -92,7 +92,7 @@ def compose():
         else:
             flash("Failed to send messages. Please try again.", "error")
 
-        return redirect(url_for("web.sms_detail", message_id=message.id))
+        return redirect(url_for("web.web_sms.sms_detail", message_id=message.id))
 
     return render_template("compose.html")
 

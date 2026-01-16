@@ -43,7 +43,7 @@ def register():
         db.session.commit()
 
         flash("Registration successful! Please log in.", "success")
-        return redirect(url_for("web.login"))
+        return redirect(url_for("web.web_auth.login"))
 
     return render_template("register.html")
 
@@ -67,7 +67,7 @@ def login():
 
         login_user(user)
         next_page = request.args.get("next")
-        return redirect(next_page or url_for("web.dashboard"))
+        return redirect(next_page or url_for("web.web_sms.dashboard"))
 
     return render_template("login.html")
 

@@ -19,7 +19,7 @@ def create_app(config_name: str = "default") -> Flask:
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = "web.login"
+    login_manager.login_view = "web.web_auth.login"
     login_manager.login_message = "Please log in to access this page."
 
     # Register blueprints

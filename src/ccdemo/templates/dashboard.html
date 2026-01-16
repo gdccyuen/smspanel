@@ -6,7 +6,7 @@
 <div class="dashboard">
     <div class="dashboard-header">
         <h1>Welcome, {{ current_user.username }}!</h1>
-        <a href="{{ url_for('web.compose') }}" class="btn btn-primary">Compose New SMS</a>
+        <a href="{{ url_for('web.web_sms.compose') }}" class="btn btn-primary">Compose New SMS</a>
     </div>
 
     <div class="stats">
@@ -35,18 +35,18 @@
                         </div>
                         <div class="message-footer">
                             <span class="recipient-count">{{ msg.recipient_count }} recipient(s)</span>
-                            <a href="{{ url_for('web.sms_detail', message_id=msg.id) }}" class="btn btn-small">View Details</a>
+                            <a href="{{ url_for('web.web_sms.sms_detail', message_id=msg.id) }}" class="btn btn-small">View Details</a>
                         </div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p class="empty-state">No messages yet. <a href="{{ url_for('web.compose') }}">Send your first SMS!</a></p>
+            <p class="empty-state">No messages yet. <a href="{{ url_for('web.web_sms.compose') }}">Send your first SMS!</a></p>
         {% endif %}
     </div>
 
     <div class="dashboard-footer">
-        <a href="{{ url_for('web.history') }}" class="btn btn-secondary">View All History</a>
+        <a href="{{ url_for('web.web_sms.history') }}" class="btn btn-secondary">View All History</a>
     </div>
 </div>
 {% endblock %}

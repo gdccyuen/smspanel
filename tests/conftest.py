@@ -70,16 +70,27 @@ def auth_headers(client, app):
 
 @pytest.fixture
 def test_message(app):
-    """Create a test user and message, return a simple object."""
+    """Create a test user and message, return a simple object.
+
+    The returned object has id and content attributes.
+    """
     with app.app_context():
-        # Create user with unique username
-        username = f"testuser_{uuid.uuid4().hex[:8]}"
-        user = User(username=username)
-        user.set_password("testpass123")
-        user.api_key = f"test-api-key-{uuid.uuid4().hex[:16]}"
-        db.session.add(user)
-        db.session.commit()
-        user_id = user.id
+        # Create user with unique username - same as auth_headers uses
+        username = "testuser"
+        password = "testpass123"
+
+        # Check if user exists first (from auth_headers fixture)
+        existing = User.query.filter_by(username=username).first()
+        if existing:
+            user = existing
+            user_id = user.id
+        else:
+            user = User(username=username)
+            user.set_password(password)
+            user.api_key = f"test-api-key-{uuid.uuid4().hex[:16]}"
+            db.session.add(user)
+            db.session.commit()
+            user_id = user.id
 
         # Create message
         message = Message(user_id=user_id, content="Test message", status="sent")

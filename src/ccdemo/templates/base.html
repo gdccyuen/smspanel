@@ -9,18 +9,18 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="{{ url_for('web.dashboard') }}" class="nav-brand">SMS App</a>
+            <a href="{{ url_for('web.web_sms.dashboard') }}" class="nav-brand">SMS App</a>
             {% if current_user.is_authenticated %}
             <div class="nav-links">
-                <a href="{{ url_for('web.dashboard') }}">Dashboard</a>
-                <a href="{{ url_for('web.compose') }}">Compose</a>
-                <a href="{{ url_for('web.history') }}">History</a>
-                <a href="{{ url_for('web.logout') }}" class="logout">Logout</a>
+                <a href="{{ url_for('web.web_sms.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('web.web_sms.compose') }}">Compose</a>
+                <a href="{{ url_for('web.web_sms.history') }}">History</a>
+                <a href="{{ url_for('web.web_auth.logout') }}" class="logout">Logout</a>
             </div>
             {% else %}
             <div class="nav-links">
-                <a href="{{ url_for('web.login') }}">Login</a>
-                <a href="{{ url_for('web.register') }}">Register</a>
+                <a href="{{ url_for('web.web_auth.login') }}">Login</a>
+                <a href="{{ url_for('web.web_auth.register') }}">Register</a>
             </div>
             {% endif %}
         </div>
