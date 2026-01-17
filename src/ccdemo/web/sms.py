@@ -185,8 +185,9 @@ def history():
     if search:
         query = query.filter(Message.content.ilike(f"%{search}%"))
 
-    messages = query.order_by(Message.created_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
+    messages = (
+        query.order_by(Message.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     return render_template(

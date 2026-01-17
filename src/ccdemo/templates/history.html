@@ -52,10 +52,15 @@
                         </td>
                         <td class="timestamp">{{ msg.created_at|hkt }}</td>
                         <td class="message-content">{{ msg.content }}</td>
-                        <td class="recipient-num">{{ msg.recipient_count }}</td>
+                        <td class="recipients-list">
+                            {% for recipient in msg.recipients %}
+                                <span class="recipient-item status-{{ recipient.status }}">{{ recipient.phone }}</span>
+                                {% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
                         <td class="counts">
-                            {% if msg.success_count > 0 %}<span class="success">{{ msg.success_count }}</span>{% endif %}
-                            {% if msg.failed_count > 0 %}<span class="failed">/{{ msg.failed_count }}</span>{% endif %}
+                            {% if msg.success_count > 0 %}<span class="success">Sent</span>{% endif %}
+                            {% if msg.failed_count > 0 %}<span class="failed">Failed</span>{% endif %}
                             {% if msg.success_count == 0 and msg.failed_count == 0 %}<span class="pending">-</span>{% endif %}
                         </td>
                         <td class="actions">
