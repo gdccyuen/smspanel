@@ -15,39 +15,6 @@ def load_user(user_id: int):
     return db.session.get(User, int(user_id))
 
 
-@web_auth_bp.route("/register", methods=["GET", "POST"])
-def register():
-    """User registration page."""
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
-
-        if not username or not password:
-            flash("Username and password are required.", "error")
-            return render_template("register.html")
-
-        if password != confirm_password:
-            flash("Passwords do not match.", "error")
-            return render_template("register.html")
-
-        if User.query.filter_by(username=username).first():
-            flash("Username already exists.", "error")
-            return render_template("register.html")
-
-        user = User(username=username)
-        user.set_password(password)
-        user.token = User.generate_token()
-
-        db.session.add(user)
-        db.session.commit()
-
-        flash("Registration successful! Please log in.", "success")
-        return redirect(url_for("web.web_auth.login"))
-
-    return render_template("register.html")
-
-
 @web_auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     """User login page."""
