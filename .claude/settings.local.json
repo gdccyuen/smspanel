@@ -16,7 +16,11 @@
       "Skill(superpowers:executing-plans)",
       "Bash(source:*)",
       "Bash(python:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(git tag -a v0.16 -m \"Release v0.16: Remove registration and API auth endpoints\")",
+      "Skill(frontend-design)",
+      "Skill(frontend-design:frontend-design)",
+      "Bash(git tag -a v0.15 -m \"Release v0.15: UI improvements and documentation updates\n\n- Improve button styling in user management \\(pill-shaped, refined colors, hover effects\\)\n- Fix history table: tighter recipients cell padding, column layout for counts\n- Add white-space nowrap to actions and sent/failed columns\n- Update README with objectives, system functions, and deployment guide\")"
     ]
   }
 }
