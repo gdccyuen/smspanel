@@ -738,6 +738,39 @@ td {
     margin-bottom: var(--space-xl);
 }
 
+/* Messages section header with filter buttons */
+.messages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.messages-header h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.time-filter-buttons {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.messages-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.dashboard-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-xl);
+}
+
 .dashboard-header h1,
 .history-header h1,
 .detail-header h1,

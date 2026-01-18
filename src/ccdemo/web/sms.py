@@ -1,7 +1,7 @@
 """Web UI SMS routes."""
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 
@@ -20,12 +20,28 @@ ENQUIRY_REGEX = re.compile(r"^\d{4}\s?\d{4}$")
 @web_sms_bp.route("/")
 @login_required
 def dashboard():
-    """Dashboard with recent messages and quick send."""
-    recent_messages = (
-        Message.query.filter_by(user_id=current_user.id)
-        .order_by(Message.created_at.desc())
-        .limit(10)
-        .all()
+    """Dashboard with messages filtered by time period."""
+    time_filter = request.args.get("time_filter", "today")
+    per_page = 20
+    page = request.args.get("page", 1, type=int)
+
+    # Calculate time range based on filter
+    now = datetime.now(timezone.utc)
+    if time_filter == "3h":
+        start_time = now - timedelta(hours=3)
+    elif time_filter == "7d":
+        start_time = now - timedelta(days=7)
+    else:  # today
+        start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Build query with time filter
+    query = Message.query.filter_by(user_id=current_user.id).filter(
+        Message.created_at >= start_time
+    )
+
+    messages = (
+        query.order_by(Message.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     total_messages = Message.query.filter_by(user_id=current_user.id).count()
@@ -33,9 +49,10 @@ def dashboard():
 
     return render_template(
         "dashboard.html",
-        messages=recent_messages,
+        messages=messages,
         total_messages=total_messages,
         total_sent=total_sent,
+        time_filter=time_filter,
     )
 
 

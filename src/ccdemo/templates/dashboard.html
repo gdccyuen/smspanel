@@ -20,28 +20,67 @@
         </div>
     </div>
 
-    <div class="recent-messages">
-        <h2>Recent Messages</h2>
-        {% if messages %}
-            <div class="message-list">
-                {% for msg in messages %}
-                    <div class="message-card">
-                        <div class="message-header">
-                            <span class="status status-{{ msg.status }}">{{ msg.status|upper }}</span>
-                            <span class="timestamp">{{ msg.created_at|hkt }}</span>
-                        </div>
-                        <div class="message-content">
-                            {{ msg.content }}
-                        </div>
-                        <div class="message-footer">
-                            <span class="recipient-count">{{ msg.recipient_count }} recipient(s)</span>
-                            <a href="{{ url_for('web.web_sms.sms_detail', message_id=msg.id) }}" class="btn btn-small">View Details</a>
-                        </div>
-                    </div>
-                {% endfor %}
+    <div class="messages-section">
+        <div class="messages-header">
+            <h2>Messages</h2>
+            <div class="time-filter-buttons">
+                <a href="{{ url_for('web.web_sms.dashboard', time_filter='3h') }}" class="btn btn-small {% if time_filter == '3h' %}btn-primary{% else %}btn-secondary{% endif %}">Last 3 hours</a>
+                <a href="{{ url_for('web.web_sms.dashboard', time_filter='today') }}" class="btn btn-small {% if time_filter == 'today' %}btn-primary{% else %}btn-secondary{% endif %}">Today</a>
+                <a href="{{ url_for('web.web_sms.dashboard', time_filter='7d') }}" class="btn btn-small {% if time_filter == '7d' %}btn-primary{% else %}btn-secondary{% endif %}">Last 7 days</a>
+            </div>
+        </div>
+
+        {% if messages.items %}
+            <div class="table-container">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Message</th>
+                            <th>Recipients</th>
+                            <th>Sent/Failed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for msg in messages.items %}
+                            <tr class="message-row">
+                                <td>
+                                    <span class="status status-{{ msg.status }}">{{ msg.status|upper }}</span>
+                                </td>
+                                <td class="timestamp">{{ msg.created_at|hkt }}</td>
+                                <td class="message-content">{{ msg.content }}</td>
+                                <td class="recipients-list">
+                                    {% for recipient in msg.recipients %}
+                                        <span class="recipient-item">{{ recipient.phone }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td class="counts">
+                                    {% if msg.success_count > 0 %}<span class="success">Sent</span>{% endif %}
+                                    {% if msg.failed_count > 0 %}<span class="failed">Failed</span>{% endif %}
+                                    {% if msg.success_count == 0 and msg.failed_count == 0 %}<span class="pending">-</span>{% endif %}
+                                </td>
+                                <td class="actions">
+                                    <a href="{{ url_for('web.web_sms.sms_detail', message_id=msg.id) }}" class="btn btn-small">View</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                {% if messages.has_prev %}
+                    <a href="{{ url_for('web.web_sms.dashboard', page=messages.prev_num, time_filter=time_filter) }}" class="btn btn-small">Previous</a>
+                {% endif %}
+                <span>Page {{ messages.page }} of {{ messages.pages }} ({{ messages.total }} total)</span>
+                {% if messages.has_next %}
+                    <a href="{{ url_for('web.web_sms.dashboard', page=messages.next_num, time_filter=time_filter) }}" class="btn btn-small">Next</a>
+                {% endif %}
             </div>
         {% else %}
-            <p class="empty-state">No messages yet. <a href="{{ url_for('web.web_sms.compose') }}">Send your first SMS!</a></p>
+            <p class="empty-state">No messages for the selected time period. <a href="{{ url_for('web.web_sms.compose') }}">Send your first SMS!</a></p>
         {% endif %}
     </div>
 

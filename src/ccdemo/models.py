@@ -19,7 +19,7 @@ class User(UserMixin, db.Model):
     token = db.Column(db.String(64), unique=True, nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     messages = db.relationship(
         "Message", backref="user", lazy="dynamic", cascade="all, delete-orphan"
@@ -55,7 +55,7 @@ class Message(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     content = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default="pending", index=True)  # pending, sent, failed
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     sent_at = db.Column(db.DateTime, nullable=True)
     hkt_response = db.Column(db.Text, nullable=True)
 
