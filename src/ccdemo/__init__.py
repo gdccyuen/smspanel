@@ -1,4 +1,4 @@
-"""Flask application factory for SMS application."""
+"""smspanel application factory."""
 
 from datetime import datetime, timedelta, timezone
 from flask import Flask
