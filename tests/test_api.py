@@ -1,7 +1,7 @@
 """Tests for API endpoints."""
 
-from ccdemo import db
-from ccdemo.models import Message, Recipient
+from smspanel import db
+from smspanel.models import Message, Recipient
 
 
 class TestSMSAPI:
