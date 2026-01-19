@@ -1,11 +1,11 @@
-"""Mock HKT SMS API for testing."""
+"""Mock SMS API for testing."""
 
 import random
 import time
 
 
-class MockHKTResponse:
-    """Mock HKT API response."""
+class MockSMSResponse:
+    """Mock SMS API response."""
 
     def __init__(self, status_code: int = 200, text: str = "SUCCESS"):
         self.status_code = status_code
@@ -19,7 +19,7 @@ class MockHKTResponse:
 
 
 class MockHKTPost:
-    """Mock requests.post function for HKT API."""
+    """Mock requests.post function for SMS API."""
 
     def __init__(self, failure_rate: float = 0.1, min_delay: float = 0.5, max_delay: float = 5.0):
         self.failure_rate = failure_rate
@@ -27,7 +27,7 @@ class MockHKTPost:
         self.max_delay = max_delay
 
     def __call__(self, *args, **kwargs):
-        """Simulate HKT API call."""
+        """Simulate SMS API call."""
         # Simulate network delay
         delay = random.uniform(self.min_delay, self.max_delay)
         time.sleep(delay)
@@ -35,7 +35,7 @@ class MockHKTPost:
         # Simulate random failures
         if random.random() < self.failure_rate:
             from requests.exceptions import RequestException
-            raise RequestException("Simulated HKT API failure")
+            raise RequestException("Simulated SMS API failure")
 
         # Return successful response
-        return MockHKTResponse(status_code=200, text="SUCCESS")
+        return MockSMSResponse(status_code=200, text="SUCCESS")

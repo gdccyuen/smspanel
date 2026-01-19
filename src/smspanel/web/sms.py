@@ -1,20 +1,26 @@
 """Web UI SMS routes."""
 
-import re
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 
-from .. import db
-from ..models import Message, Recipient
+from ..models import Message
 from ..services.hkt_sms import HKTSMSService
+from ..utils.validation import (
+    validate_enquiry_number,
+    validate_message_content,
+    validate_recipients,
+    format_phone_error,
+)
+from ..utils.sms_helper import (
+    create_message_record,
+    create_recipient_records,
+    update_message_status_from_result,
+    get_flash_message_from_result,
+)
+from ..utils.database import db_transaction
 
 web_sms_bp = Blueprint("web_sms", __name__)
-
-# Phone number regex: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678)
-PHONE_REGEX = re.compile(r"^\d{4}\s?\d{4}$")
-# Enquiry number regex: 4 digits, optional space, 4 digits
-ENQUIRY_REGEX = re.compile(r"^\d{4}\s?\d{4}$")
 
 
 @web_sms_bp.route("/")
@@ -65,9 +71,10 @@ def compose():
         recipients_input = request.form.get("recipients", "").strip()
         enquiry_number = request.form.get("enquiry_number", "").strip()
 
-        # Enquiry number is mandatory and must match regex
-        if not enquiry_number:
-            flash("Enquiry Number is required.", "error")
+        # Validate enquiry number
+        is_valid, error_msg = validate_enquiry_number(enquiry_number)
+        if not is_valid:
+            flash(error_msg, "error")
             return render_template(
                 "compose.html",
                 content=content,
@@ -75,11 +82,10 @@ def compose():
                 enquiry_number=enquiry_number,
             )
 
-        if not ENQUIRY_REGEX.match(enquiry_number):
-            flash(
-                "Invalid Enquiry Number format. Must be in format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678).",
-                "error",
-            )
+        # Validate message content
+        is_valid, error_msg = validate_message_content(content)
+        if not is_valid:
+            flash(error_msg, "error")
             return render_template(
                 "compose.html",
                 content=content,
@@ -87,21 +93,10 @@ def compose():
                 enquiry_number=enquiry_number,
             )
 
-        # Message field is mandatory
-        if not content:
-            flash("Message content is required.", "error")
-            return render_template(
-                "compose.html",
-                content=content,
-                recipients=recipients_input,
-                enquiry_number=enquiry_number,
-            )
+        # Validate recipients
+        valid_recipients, invalid_numbers = validate_recipients(recipients_input)
 
-        # Parse recipients (one per row, ignore empty lines)
-        recipients = [r.strip() for r in recipients_input.split("\n") if r.strip()]
-
-        # Recipients must have at least one number
-        if not recipients:
+        if not valid_recipients:
             flash("At least one recipient is required.", "error")
             return render_template(
                 "compose.html",
@@ -110,21 +105,8 @@ def compose():
                 enquiry_number=enquiry_number,
             )
 
-        # Validate each phone number matches regex \d{4}\s?\d{4}
-        invalid_numbers = []
-        valid_recipients = []
-        for r in recipients:
-            if not PHONE_REGEX.match(r):
-                invalid_numbers.append(r)
-            else:
-                valid_recipients.append(r)
-
         if invalid_numbers:
-            flash(
-                f"Invalid phone number format: {', '.join(invalid_numbers)}. "
-                "Each number must be in format: 4 digits, optional space, 4 digits (e.g., 1234 5678 or 12345678).",
-                "error",
-            )
+            flash(format_phone_error(invalid_numbers), "error")
             return render_template(
                 "compose.html",
                 content=content,
@@ -132,53 +114,26 @@ def compose():
                 enquiry_number=enquiry_number,
             )
 
-        recipients = valid_recipients
-
         # Append enquiry number to message content
         sms_content = f"{content} EN:{enquiry_number}"
 
-        # Create message record
-        message = Message(user_id=current_user.id, content=sms_content, status="pending")
-        db.session.add(message)
-        db.session.flush()
+        # Create message and recipient records
+        with db_transaction() as session:
+            message = create_message_record(current_user.id, sms_content)
+            create_recipient_records(message.id, valid_recipients)
 
-        # Create recipient records
-        for recipient in recipients:
-            recipient_record = Recipient(message_id=message.id, phone=recipient, status="pending")
-            db.session.add(recipient_record)
-
-        db.session.commit()
-
-        # Send SMS via HKT
+        # Send SMS via SMS gateway
         sms_service = HKTSMSService()
-        result = sms_service.send_bulk(recipients, sms_content)
+        result = sms_service.send_bulk(valid_recipients, sms_content)
 
-        # Update records based on result
-        all_sent = result["success"]
-        message.status = "sent" if all_sent else "partial" if result["successful"] > 0 else "failed"
-        if all_sent:
-            message.sent_at = datetime.now(timezone.utc)
+        # Update message status based on result
+        with db_transaction() as session:
+            session.add(message)
+            update_message_status_from_result(message, result)
 
-        # Update individual recipient statuses
-        for i, recipient_result in enumerate(result["results"]):
-            recipient_record = message.recipients[i]
-            if recipient_result["success"]:
-                recipient_record.status = "sent"
-            else:
-                recipient_record.status = "failed"
-                recipient_record.error_message = recipient_result.get("error", "Unknown error")
-
-        db.session.commit()
-
-        if all_sent:
-            flash(f"Successfully sent {result['total']} message(s).", "success")
-        elif result["successful"] > 0:
-            flash(
-                f"Partially sent: {result['successful']} successful, {result['failed']} failed.",
-                "warning",
-            )
-        else:
-            flash("Failed to send messages. Please try again.", "error")
+        # Flash appropriate message
+        flash_type, flash_msg = get_flash_message_from_result(result)
+        flash(flash_msg, flash_type)
 
         return redirect(url_for("web.web_sms.sms_detail", message_id=message.id))
 

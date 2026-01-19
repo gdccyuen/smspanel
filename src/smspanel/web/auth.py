@@ -5,6 +5,10 @@ from flask_login import login_user, logout_user, login_required
 
 from .. import db, login_manager
 from ..models import User
+from ..constants.messages import (
+    AUTH_USERNAME_PASSWORD_REQUIRED,
+    AUTH_INVALID_CREDENTIALS,
+)
 
 web_auth_bp = Blueprint("web_auth", __name__)
 
@@ -23,13 +27,13 @@ def login():
         password = request.form.get("password")
 
         if not username or not password:
-            flash("Username and password are required.", "error")
+            flash(AUTH_USERNAME_PASSWORD_REQUIRED, "error")
             return render_template("login.html")
 
         user = User.query.filter_by(username=username).first()
 
         if user is None or not user.check_password(password):
-            flash("Invalid username or password.", "error")
+            flash(AUTH_INVALID_CREDENTIALS, "error")
             return render_template("login.html")
 
         login_user(user)

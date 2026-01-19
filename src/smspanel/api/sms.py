@@ -1,84 +1,15 @@
 """API SMS endpoints."""
 
-import logging
-from datetime import datetime, timezone
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 
 from .. import db
 from ..models import User, Message, Recipient
-from ..services.hkt_sms import HKTSMSService
 from ..services.queue import get_task_queue
-
-logger = logging.getLogger(__name__)
+from ..utils.sms_helper import process_single_sms_task, process_bulk_sms_task
+from .responses import APIResponse, unauthorized, bad_request, service_unavailable, not_found
+from .decorators import validate_json
 
 api_sms_bp = Blueprint("api_sms", __name__)
-
-
-def _process_single_sms(message_id: int, recipient: str):
-    """Background task to send a single SMS.
-
-    Args:
-        message_id: Message ID in database.
-        recipient: Phone number to send to.
-    """
-
-    message = Message.query.get(message_id)
-    if not message:
-        logger.error(f"Message {message_id} not found")
-        return
-
-    recipient_record = Recipient.query.filter_by(message_id=message_id, phone=recipient).first()
-    if not recipient_record:
-        logger.error(f"Recipient record not found for message {message_id}, phone {recipient}")
-        return
-
-    sms_service = HKTSMSService()
-    result = sms_service.send_single(recipient, message.content)
-
-    if result["success"]:
-        message.status = "sent"
-        message.sent_at = datetime.now(timezone.utc)
-        message.hkt_response = result.get("response_text", "")
-        recipient_record.status = "sent"
-    else:
-        message.status = "failed"
-        recipient_record.status = "failed"
-        recipient_record.error_message = result.get("error", "Unknown error")
-
-    db.session.commit()
-
-
-def _process_bulk_sms(message_id: int, recipients: list[str]):
-    """Background task to send bulk SMS.
-
-    Args:
-        message_id: Message ID in database.
-        recipients: List of phone numbers to send to.
-    """
-
-    message = Message.query.get(message_id)
-    if not message:
-        logger.error(f"Message {message_id} not found")
-        return
-
-    sms_service = HKTSMSService()
-    result = sms_service.send_bulk(recipients, message.content)
-
-    all_sent = result["success"]
-    message.status = "sent" if all_sent else "partial" if result["successful"] > 0 else "failed"
-    if all_sent:
-        message.sent_at = datetime.now(timezone.utc)
-
-    # Update individual recipient statuses
-    for i, recipient_result in enumerate(result["results"]):
-        recipient_record = message.recipients[i]
-        if recipient_result["success"]:
-            recipient_record.status = "sent"
-        else:
-            recipient_record.status = "failed"
-            recipient_record.error_message = recipient_result.get("error", "Unknown error")
-
-    db.session.commit()
 
 
 def get_user_from_token() -> User | None:
@@ -110,7 +41,7 @@ def list_messages() -> tuple:
     """
     user = get_user_from_token()
     if user is None:
-        return jsonify({"error": "Unauthorized"}), 401
+        return unauthorized()
 
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 20, type=int)
@@ -121,8 +52,8 @@ def list_messages() -> tuple:
         .paginate(page=page, per_page=per_page, error_out=False)
     )
 
-    return jsonify(
-        {
+    return APIResponse.success(
+        data={
             "messages": [
                 {
                     "id": m.id,
@@ -138,10 +69,11 @@ def list_messages() -> tuple:
             "pages": messages.pages,
             "current_page": page,
         }
-    ), 200
+    )
 
 
 @api_sms_bp.route("/sms", methods=["POST"])
+@validate_json(["recipient", "content"])
 def send_sms() -> tuple:
     """Send a single SMS message (asynchronous).
 
@@ -154,14 +86,11 @@ def send_sms() -> tuple:
     """
     user = get_user_from_token()
     if user is None:
-        return jsonify({"error": "Unauthorized"}), 401
+        return unauthorized()
 
     data = request.get_json()
     recipient = data.get("recipient")
     content = data.get("content")
-
-    if not recipient or not content:
-        return jsonify({"error": "Recipient and content are required"}), 400
 
     # Create message record
     message = Message(user_id=user.id, content=content, status="pending")
@@ -175,27 +104,26 @@ def send_sms() -> tuple:
 
     # Enqueue background task
     task_queue = get_task_queue()
-    enqueued = task_queue.enqueue(_process_single_sms, message.id, recipient)
+    enqueued = task_queue.enqueue(process_single_sms_task, message.id, recipient)
 
     if not enqueued:
-        return jsonify({"error": "Service is busy, please try again later"}), 503
+        return service_unavailable()
 
-    return (
-        jsonify(
-            {
-                "id": message.id,
-                "status": "pending",
-                "recipient": recipient,
-                "content": content,
-                "created_at": message.created_at.isoformat(),
-                "message": "SMS queued for sending",
-            }
-        ),
-        202,
+    return APIResponse.success(
+        data={
+            "id": message.id,
+            "status": "pending",
+            "recipient": recipient,
+            "content": content,
+            "created_at": message.created_at.isoformat(),
+        },
+        message="SMS queued for sending",
+        status_code=202,
     )
 
 
 @api_sms_bp.route("/sms/send-bulk", methods=["POST"])
+@validate_json(["recipients", "content"])
 def send_bulk_sms() -> tuple:
     """Send SMS messages to multiple recipients (asynchronous).
 
@@ -208,14 +136,15 @@ def send_bulk_sms() -> tuple:
     """
     user = get_user_from_token()
     if user is None:
-        return jsonify({"error": "Unauthorized"}), 401
+        return unauthorized()
 
     data = request.get_json()
     recipients = data.get("recipients", [])
     content = data.get("content")
 
-    if not recipients or not content:
-        return jsonify({"error": "Recipients and content are required"}), 400
+    # Additional validation for non-empty recipients list
+    if not recipients:
+        return bad_request("Recipients list cannot be empty", "MISSING_FIELDS")
 
     # Create message record
     message = Message(user_id=user.id, content=content, status="pending")
@@ -231,23 +160,21 @@ def send_bulk_sms() -> tuple:
 
     # Enqueue background task
     task_queue = get_task_queue()
-    enqueued = task_queue.enqueue(_process_bulk_sms, message.id, recipients)
+    enqueued = task_queue.enqueue(process_bulk_sms_task, message.id, recipients)
 
     if not enqueued:
-        return jsonify({"error": "Service is busy, please try again later"}), 503
+        return service_unavailable()
 
-    return (
-        jsonify(
-            {
-                "id": message.id,
-                "status": "pending",
-                "total": len(recipients),
-                "content": content,
-                "created_at": message.created_at.isoformat(),
-                "message": "Bulk SMS queued for sending",
-            }
-        ),
-        202,
+    return APIResponse.success(
+        data={
+            "id": message.id,
+            "status": "pending",
+            "total": len(recipients),
+            "content": content,
+            "created_at": message.created_at.isoformat(),
+        },
+        message="Bulk SMS queued for sending",
+        status_code=202,
     )
 
 
@@ -263,25 +190,24 @@ def get_message(message_id: int) -> tuple:
     """
     user = get_user_from_token()
     if user is None:
-        return jsonify({"error": "Unauthorized"}), 401
+        return unauthorized()
 
-    message = Message.query.filter_by(id=message_id, user_id=user.id).first_or_404()
+    message = Message.query.filter_by(id=message_id, user_id=user.id).first()
+    if message is None:
+        return not_found("Message not found")
 
-    return (
-        jsonify(
-            {
-                "id": message.id,
-                "content": message.content,
-                "status": message.status,
-                "created_at": message.created_at.isoformat(),
-                "sent_at": message.sent_at.isoformat() if message.sent_at else None,
-                "hkt_response": message.hkt_response,
-                "recipient_count": message.recipient_count,
-                "success_count": message.success_count,
-                "failed_count": message.failed_count,
-            }
-        ),
-        200,
+    return APIResponse.success(
+        data={
+            "id": message.id,
+            "content": message.content,
+            "status": message.status,
+            "created_at": message.created_at.isoformat(),
+            "sent_at": message.sent_at.isoformat() if message.sent_at else None,
+            "hkt_response": message.hkt_response,
+            "recipient_count": message.recipient_count,
+            "success_count": message.success_count,
+            "failed_count": message.failed_count,
+        }
     )
 
 
@@ -297,9 +223,11 @@ def get_message_recipients(message_id: int) -> tuple:
     """
     user = get_user_from_token()
     if user is None:
-        return jsonify({"error": "Unauthorized"}), 401
+        return unauthorized()
 
-    message = Message.query.filter_by(id=message_id, user_id=user.id).first_or_404()
+    message = Message.query.filter_by(id=message_id, user_id=user.id).first()
+    if message is None:
+        return not_found("Message not found")
 
     recipients = [
         {
@@ -311,4 +239,4 @@ def get_message_recipients(message_id: int) -> tuple:
         for r in message.recipients
     ]
 
-    return jsonify({"recipients": recipients}), 200
+    return APIResponse.success(data={"recipients": recipients})

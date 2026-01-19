@@ -1,11 +1,27 @@
 """Admin routes for user management."""
 
 from functools import wraps
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
+from werkzeug.wrappers import Response
 
-from .. import db
 from ..models import User
+from ..constants.messages import (
+    AUTH_USERNAME_PASSWORD_REQUIRED,
+    AUTH_PASSWORDS_DO_NOT_MATCH,
+    AUTH_NEW_PASSWORD_REQUIRED,
+    AUTH_ADMIN_REQUIRED,
+    AUTH_LOGIN_REQUIRED,
+    USER_CREATED,
+    USER_ALREADY_EXISTS,
+    USER_PASSWORD_CHANGED,
+    USER_ENABLED,
+    USER_DISABLED,
+    USER_DELETED,
+    USER_TOKEN_REGENERATED,
+)
+from ..utils.admin import get_user_or_redirect, check_self_action_allowed, validate_passwords_match
+from ..utils.database import db_transaction
 
 web_admin_bp = Blueprint("web_admin", __name__, url_prefix="/admin")
 
@@ -16,10 +32,10 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
-            flash("Please log in to access this page.", "error")
+            flash(AUTH_LOGIN_REQUIRED, "error")
             return redirect(url_for("web.web_auth.login"))
         if not current_user.is_admin:
-            flash("Admin access required.", "error")
+            flash(AUTH_ADMIN_REQUIRED, "error")
             return redirect(url_for("web.web_sms.dashboard"))
         return f(*args, **kwargs)
 
@@ -48,15 +64,15 @@ def create_user():
         is_admin = request.form.get("is_admin") == "on"
 
         if not username or not password:
-            flash("Username and password are required.", "error")
+            flash(AUTH_USERNAME_PASSWORD_REQUIRED, "error")
             return render_template("admin/create_user.html")
 
-        if password != confirm_password:
-            flash("Passwords do not match.", "error")
+        if not validate_passwords_match(password, confirm_password):
+            flash(AUTH_PASSWORDS_DO_NOT_MATCH, "error")
             return render_template("admin/create_user.html")
 
         if User.query.filter_by(username=username).first():
-            flash("Username already exists.", "error")
+            flash(USER_ALREADY_EXISTS, "error")
             return render_template("admin/create_user.html")
 
         user = User(username=username)
@@ -65,10 +81,10 @@ def create_user():
         user.is_admin = is_admin
         user.is_active = True
 
-        db.session.add(user)
-        db.session.commit()
+        with db_transaction() as session:
+            session.add(user)
 
-        flash(f"User '{username}' created successfully!", "success")
+        flash(USER_CREATED.format(username=username), "success")
         return redirect(url_for("web.web_admin.users"))
 
     return render_template("admin/create_user.html")
@@ -79,27 +95,27 @@ def create_user():
 @admin_required
 def change_password(user_id):
     """Change user password."""
-    user = db.session.get(User, user_id)
-    if not user:
-        flash("User not found.", "error")
-        return redirect(url_for("web.web_admin.users"))
+    user = get_user_or_redirect(user_id)
+    if isinstance(user, Response):
+        return user
 
     if request.method == "POST":
         new_password = request.form.get("new_password")
         confirm_password = request.form.get("confirm_password")
 
         if not new_password:
-            flash("New password is required.", "error")
+            flash(AUTH_NEW_PASSWORD_REQUIRED, "error")
             return render_template("admin/change_password.html", user=user)
 
-        if new_password != confirm_password:
-            flash("Passwords do not match.", "error")
+        if not validate_passwords_match(new_password, confirm_password):
+            flash(AUTH_PASSWORDS_DO_NOT_MATCH, "error")
             return render_template("admin/change_password.html", user=user)
 
         user.set_password(new_password)
-        db.session.commit()
+        with db_transaction() as session:
+            session.add(user)
 
-        flash(f"Password for '{user.username}' changed successfully!", "success")
+        flash(USER_PASSWORD_CHANGED.format(username=user.username), "success")
         return redirect(url_for("web.web_admin.users"))
 
     return render_template("admin/change_password.html", user=user)
@@ -110,21 +126,21 @@ def change_password(user_id):
 @admin_required
 def toggle_active(user_id):
     """Toggle user active status (enable/disable)."""
-    user = db.session.get(User, user_id)
-    if not user:
-        flash("User not found.", "error")
-        return redirect(url_for("web.web_admin.users"))
+    user = get_user_or_redirect(user_id)
+    if isinstance(user, Response):
+        return user
 
     # Prevent disabling self
-    if user.id == current_user.id:
-        flash("You cannot disable yourself.", "error")
-        return redirect(url_for("web.web_admin.users"))
+    check_result = check_self_action_allowed(user, "disable")
+    if isinstance(check_result, Response):
+        return check_result
 
     user.is_active = not user.is_active
-    status = "enabled" if user.is_active else "disabled"
-    db.session.commit()
+    with db_transaction() as session:
+        session.add(user)
 
-    flash(f"User '{user.username}' has been {status}.", "success")
+    message = USER_ENABLED if user.is_active else USER_DISABLED
+    flash(message.format(username=user.username), "success")
     return redirect(url_for("web.web_admin.users"))
 
 
@@ -133,22 +149,21 @@ def toggle_active(user_id):
 @admin_required
 def delete_user(user_id):
     """Delete a user."""
-    user = db.session.get(User, user_id)
-    if not user:
-        flash("User not found.", "error")
-        return redirect(url_for("web.web_admin.users"))
+    user = get_user_or_redirect(user_id)
+    if isinstance(user, Response):
+        return user
 
     # Prevent deleting self
-    if user.id == current_user.id:
-        flash("You cannot delete yourself.", "error")
-        return redirect(url_for("web.web_admin.users"))
+    check_result = check_self_action_allowed(user, "delete")
+    if isinstance(check_result, Response):
+        return check_result
 
     if request.method == "POST":
         username = user.username
-        db.session.delete(user)
-        db.session.commit()
+        with db_transaction() as session:
+            session.delete(user)
 
-        flash(f"User '{username}' deleted successfully!", "success")
+        flash(USER_DELETED.format(username=username), "success")
         return redirect(url_for("web.web_admin.users"))
 
     return render_template("admin/delete_user.html", user=user)
@@ -159,13 +174,13 @@ def delete_user(user_id):
 @admin_required
 def regenerate_token(user_id):
     """Regenerate the API token for a user."""
-    user = db.session.get(User, user_id)
-    if not user:
-        flash("User not found.", "error")
-        return redirect(url_for("web.web_admin.users"))
+    user = get_user_or_redirect(user_id)
+    if isinstance(user, Response):
+        return user
 
     user.token = User.generate_token()
-    db.session.commit()
+    with db_transaction() as session:
+        session.add(user)
 
-    flash(f"API token regenerated for '{user.username}'.", "success")
+    flash(USER_TOKEN_REGENERATED.format(username=user.username), "success")
     return redirect(url_for("web.web_admin.users"))

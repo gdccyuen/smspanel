@@ -1,6 +1,6 @@
 # smspanel
 
-A Python SMS management application with web UI and REST API for sending and tracking SMS messages via HKT SMS gateway.
+A Python SMS management application with web UI and REST API for sending and tracking SMS messages.
 
 ## Objectives
 
@@ -10,7 +10,7 @@ This application provides a comprehensive SMS management system with the followi
 2. **Message Tracking** - Track delivery status (pending, sent, failed) for each message and individual recipients
 3. **User Management** - Admin interface for complete user lifecycle management (create, modify password, enable/disable, delete)
 4. **API Access** - RESTful API for programmatic SMS sending with token-based authentication
-5. **Hong Kong Integration** - Built-in timezone conversion (UTC to HKT) and HKT SMS gateway integration
+5. **Hong Kong Integration** - Built-in timezone conversion (UTC to HKT) and SMS gateway integration
 6. **Testing Support** - Mock SMS provider for local development and testing
 
 ## Features
@@ -20,13 +20,13 @@ This application provides a comprehensive SMS management system with the followi
 - **User Management**: Admin interface for user CRUD operations
 - **Authentication**: Web login and API token-based authentication
 - **Hong Kong Time**: Built-in timezone conversion (UTC to HKT)
-- **Mock HKT API**: Testing mode simulates HKT SMS gateway
+- **Mock SMS API**: Testing mode simulates SMS gateway
 
 ## System Functions
 
 ### SMS Management
 - **Compose**: Create new SMS messages with content and recipients
-- **Send**: Send SMS via HKT SMS gateway (real or mock)
+- **Send**: Send SMS via SMS gateway (real or mock)
 - **Track**: Monitor delivery status per message and per recipient
 - **History**: View and search past messages with filters
 - **Detail**: View full message details including recipient status
@@ -105,11 +105,11 @@ The app will start on `http://localhost:3570`
 
 ## Mock SMS Provider
 
-To run mock HKT SMS provider (required for testing):
+To run mock SMS provider (required for testing):
 
 ```bash
 source .venv/bin/activate
-python scripts/mock_hkt_api.py
+python scripts/mock_sms_api.py
 ```
 
 The mock server runs on `http://127.0.0.1:5555/gateway/gateway.jsp`
@@ -121,7 +121,7 @@ The mock server runs on `http://127.0.0.1:5555/gateway/gateway.jsp`
 1. **Python 3.12+** installed on target server
 2. **Environment variables** configured (see Configuration section)
 3. **Production database** location secured
-4. **HKT SMS gateway credentials** obtained
+4. **SMS gateway credentials** obtained
 
 ### Deployment Steps
 
@@ -152,10 +152,10 @@ SECRET_KEY=<generate-strong-random-key>
 # Database
 DATABASE_URL=sqlite:///instance/sms.db
 
-# HKT SMS Gateway (production)
-HKT_BASE_URL=https://cst01.1010.com.hk/gateway/gateway.jsp
-HKT_APPLICATION_ID=YourAppID
-HKT_SENDER_NUMBER=YourSenderNumber
+# SMS Gateway (production)
+SMS_BASE_URL=https://cst01.1010.com.hk/gateway/gateway.jsp
+SMS_APPLICATION_ID=YourAppID
+SMS_SENDER_NUMBER=YourSenderNumber
 ```
 
 Generate secure keys using:
@@ -307,7 +307,7 @@ ruff format .
 ```
 smspanel/
 ├── src/                    # Source code
-│   └── ccdemo/
+│   └── smspanel/
 │       ├── models.py        # Database models (User, Message, Recipient)
 │       ├── config.py       # Configuration classes
 │       ├── __init__.py     # App factory
@@ -320,7 +320,7 @@ smspanel/
 │       │   ├── sms.py      # SMS composition/history
 │       │   └── admin.py    # User management (admin only)
 │       ├── services/        # Business logic
-│       │   └── hkt_sms.py # HKT SMS service
+│       │   └── hkt_sms.py # SMS service
 │       └── templates/      # Jinja2 templates
 │           ├── admin/
 │           ├── *.html
@@ -350,9 +350,9 @@ Configuration is in `src/smspanel/config.py`. The following environment variable
 | Setting | Description | Environment Variable |
 |---------|-------------|---------------------|
 | `DATABASE_URL` | Database path | `DATABASE_URL` |
-| `HKT_BASE_URL` | HKT SMS gateway | `HKT_BASE_URL` |
-| `HKT_APPLICATION_ID` | HKT app ID | `HKT_APPLICATION_ID` |
-| `HKT_SENDER_NUMBER` | HKT sender number | `HKT_SENDER_NUMBER` |
+| `SMS_BASE_URL` | SMS gateway | `SMS_BASE_URL` |
+| `SMS_APPLICATION_ID` | SMS app ID | `SMS_APPLICATION_ID` |
+| `SMS_SENDER_NUMBER` | SMS sender number | `SMS_SENDER_NUMBER` |
 
 Optional settings (with defaults):
 

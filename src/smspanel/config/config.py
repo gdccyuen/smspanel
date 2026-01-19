@@ -1,11 +1,11 @@
-"""Configuration for the SMS application.
+"""Flask application configuration classes.
 
 Environment Variables:
     Required:
         DATABASE_URL - SQLAlchemy database connection string
-        HKT_BASE_URL - HKT SMS gateway URL
-        HKT_APPLICATION_ID - HKT SMS API application ID
-        HKT_SENDER_NUMBER - HKT SMS sender number
+        SMS_BASE_URL - SMS gateway URL
+        SMS_APPLICATION_ID - SMS API application ID
+        SMS_SENDER_NUMBER - SMS sender number
 
     Optional (with defaults):
         SECRET_KEY - Flask session encryption (default: dev key)
@@ -27,10 +27,14 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///sms.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # HKT SMS
-    HKT_BASE_URL = os.getenv("HKT_BASE_URL")
-    HKT_APPLICATION_ID = os.getenv("HKT_APPLICATION_ID")
-    HKT_SENDER_NUMBER = os.getenv("HKT_SENDER_NUMBER")
+    # SMS Gateway
+    SMS_BASE_URL = os.getenv("SMS_BASE_URL")
+    SMS_APPLICATION_ID = os.getenv("SMS_APPLICATION_ID")
+    SMS_SENDER_NUMBER = os.getenv("SMS_SENDER_NUMBER")
+
+    # SMS Queue
+    SMS_QUEUE_WORKERS = 4
+    SMS_QUEUE_MAX_SIZE = 1000
 
 
 class DevelopmentConfig(Config):
@@ -51,6 +55,11 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False
+
+    # SMS Gateway (for testing)
+    SMS_BASE_URL = "https://test-sms-gateway.example.com/gateway/gateway.jsp"
+    SMS_APPLICATION_ID = "test-app"
+    SMS_SENDER_NUMBER = "test-sender"
 
 
 config = {

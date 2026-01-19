@@ -1,52 +1,34 @@
-"""HKT SMS service for sending SMS messages."""
+"""SMS service for sending SMS messages."""
 
 import requests
-from flask import current_app
 from typing import Dict, Optional
 
+from ..config import ConfigService, SMSConfig
 
-class HKTSMSError(Exception):
-    """Exception raised for HKT SMS service errors."""
+
+class SMSError(Exception):
+    """Exception raised for SMS service errors."""
 
     pass
 
 
 class HKTSMSService:
-    """Service for interacting with HKT SMS API."""
+    """Service for interacting with SMS API."""
 
-    def __init__(
-        self,
-        base_url: Optional[str] = None,
-        application_id: Optional[str] = None,
-        sender_number: Optional[str] = None,
-    ):
-        """Initialize the HKT SMS service.
+    def __init__(self, config_service: ConfigService):
+        """Initialize SMS service.
 
         Args:
-            base_url: HKT API base URL. If None, uses Flask app config.
-            application_id: HKT application ID. If None, uses Flask app config.
-            sender_number: HKT sender number. If None, uses Flask app config.
+            config_service: Configuration service for SMS settings.
         """
-        self.base_url = base_url
-        self.application_id = application_id
-        self.sender_number = sender_number
+        self.config_service = config_service
+        self._config: Optional[SMSConfig] = None
 
-    def _get_config(self) -> Dict[str, str]:
-        """Get configuration from Flask app if not set."""
-        if self.base_url is None:
-            self.base_url = current_app.config.get(
-                "HKT_BASE_URL", "https://cst01.1010.com.hk/gateway/gateway.jsp"
-            )
-        if self.application_id is None:
-            self.application_id = current_app.config.get("HKT_APPLICATION_ID", "LabourDept")
-        if self.sender_number is None:
-            self.sender_number = current_app.config.get("HKT_SENDER_NUMBER", "852520702793127")
-
-        return {
-            "base_url": self.base_url,
-            "application_id": self.application_id,
-            "sender_number": self.sender_number,
-        }
+    def _get_config(self) -> SMSConfig:
+        """Get SMS configuration from config service."""
+        if self._config is None:
+            self._config = self.config_service.get_sms_config()
+        return self._config
 
     def send_single(self, recipient: str, message: str) -> Dict[str, any]:
         """Send a single SMS message.
@@ -59,20 +41,20 @@ class HKTSMSService:
             Dict with status and response details.
 
         Raises:
-            HKTSMSError: If the API request fails.
+            SMSError: If API request fails.
         """
         config = self._get_config()
 
         data = {
-            "application": config["application_id"],
+            "application": config.application_id,
             "mrt": recipient,
-            "sender": config["sender_number"],
+            "sender": config.sender_number,
             "msg_utf8": message,
         }
 
         try:
             response = requests.post(
-                config["base_url"],
+                config.base_url,
                 data=data,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
                 timeout=30,
@@ -85,7 +67,6 @@ class HKTSMSService:
                 "status_code": response.status_code,
                 "response_text": response.text,
             }
-
         except requests.RequestException as e:
             return {
                 "success": False,

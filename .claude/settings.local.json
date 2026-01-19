@@ -23,7 +23,12 @@
       "Bash(git tag -a v0.18 -m \"Release v0.18: Add async task queue for SMS sending with realistic HKT mock\n\n- Implement in-memory task queue with configurable worker threads\n- API endpoints now enqueue SMS tasks and return 202 Accepted\n- Added MockHKTPost class with 10% failure rate and 0.5-5s delay\n- List Messages API: removed success/failed_count, added recipients array\n- History page: show sent_at timestamp instead of created_at\n- Timestamp format: added millisecond precision \\(HH:MM:SS.mmm\\)\n- Updated tests for new async behavior and API token auth\")",
       "Bash(git tag -l -n9)",
       "Skill(writing-plans)",
-      "Skill(subagent-driven-development)"
+      "Skill(subagent-driven-development)",
+      "Bash(grep:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(python3:*)",
+      "Bash(pip show:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

@@ -14,7 +14,7 @@ class TestSMSAPI:
 
     def test_list_messages_empty(self, client, auth_headers, test_user):
         """Test listing messages when user has none."""
-        # Delete the fixture message
+        # Delete fixture message
         Message.query.delete()
         Recipient.query.delete()
         db.session.commit()
@@ -22,17 +22,19 @@ class TestSMSAPI:
         response = client.get("/api/sms", headers=auth_headers)
         assert response.status_code == 200
         data = response.json
-        assert "messages" in data
-        assert data["total"] == 0
-        assert data["messages"] == []
+        assert data["success"] is True
+        assert "messages" in data["data"]
+        assert data["data"]["total"] == 0
+        assert data["data"]["messages"] == []
 
     def test_list_messages_with_data(self, client, auth_headers, test_message):
         """Test listing messages with existing data."""
         response = client.get("/api/sms", headers=auth_headers)
         assert response.status_code == 200
         data = response.json
-        assert data["total"] >= 1
-        assert len(data["messages"]) >= 1
+        assert data["success"] is True
+        assert data["data"]["total"] >= 1
+        assert len(data["data"]["messages"]) >= 1
 
     def test_send_sms_unauthorized(self, client):
         """Test sending SMS without authorization."""
@@ -41,11 +43,17 @@ class TestSMSAPI:
             json={"recipient": "85212345678", "content": "Test"},
         )
         assert response.status_code == 401
+        data = response.json
+        assert data["success"] is False
+        assert "error" in data
 
     def test_send_sms_missing_fields(self, client, auth_headers):
         """Test sending SMS with missing fields."""
         response = client.post("/api/sms", json={"recipient": "85212345678"}, headers=auth_headers)
         assert response.status_code == 400
+        data = response.json
+        assert data["success"] is False
+        assert "error" in data
 
     def test_send_sms_invalid_request(self, client, auth_headers):
         """Test sending SMS to HKT (will be queued)."""
@@ -57,8 +65,9 @@ class TestSMSAPI:
         # SMS should be queued and return 202
         assert response.status_code == 202
         data = response.json
-        assert "id" in data
-        assert data["status"] == "pending"
+        assert data["success"] is True
+        assert "id" in data["data"]
+        assert data["data"]["status"] == "pending"
 
     def test_send_bulk_sms_unauthorized(self, client):
         """Test sending bulk SMS without authorization."""
@@ -74,6 +83,9 @@ class TestSMSAPI:
             "/api/sms/send-bulk", json={"recipients": ["85212345678"]}, headers=auth_headers
         )
         assert response.status_code == 400
+        data = response.json
+        assert data["success"] is False
+        assert "error" in data
 
     def test_get_message_unauthorized(self, client, test_message):
         """Test getting message details without authorization."""
@@ -84,14 +96,18 @@ class TestSMSAPI:
         """Test getting non-existent message."""
         response = client.get("/api/sms/99999", headers=auth_headers)
         assert response.status_code == 404
+        data = response.json
+        assert data["success"] is False
+        assert "error" in data
 
     def test_get_message_success(self, client, auth_headers, test_message):
         """Test getting message details successfully."""
         response = client.get(f"/api/sms/{test_message.id}", headers=auth_headers)
         assert response.status_code == 200
         data = response.json
-        assert data["id"] == test_message.id
-        assert data["content"] == test_message.content
+        assert data["success"] is True
+        assert data["data"]["id"] == test_message.id
+        assert data["data"]["content"] == test_message.content
 
     def test_get_message_recipients_unauthorized(self, client, test_message):
         """Test getting message recipients without authorization."""
@@ -103,5 +119,6 @@ class TestSMSAPI:
         response = client.get(f"/api/sms/{test_message.id}/recipients", headers=auth_headers)
         assert response.status_code == 200
         data = response.json
-        assert "recipients" in data
-        assert len(data["recipients"]) >= 1
+        assert data["success"] is True
+        assert "recipients" in data["data"]
+        assert len(data["data"]["recipients"]) >= 1
