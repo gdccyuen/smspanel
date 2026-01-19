@@ -25,7 +25,7 @@
   curl -s -X POST $BASE_URL/sms \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
-    -d '{"recipient":"85212345678","content":"Test message"}' | jq
+    -d '{"recipient":"8524 5678","content":"Test message"}' | jq
 
   # Send Error SMS
   echo ""
@@ -42,7 +42,7 @@
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
     -d '{
-      "recipients": ["85212345678", "85287654321"],
+      "recipients": ["1234-5678", "85287654321"],
       "content": "Hello everyone!"
     }'
 
