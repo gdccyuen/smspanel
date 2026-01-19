@@ -130,7 +130,7 @@ The mock server runs on `http://127.0.0.1:5555/gateway/gateway.jsp`
 ```bash
 # Clone repository
 git clone <repo-url>
-cd ccdemo
+cd smspanel
 
 # Create virtual environment
 python -m venv .venv
@@ -199,7 +199,7 @@ uwsgi --http 0.0.0.0:3570 --wsgi-file run.py --callable app
 
 **Option C: Using systemd service**
 
-Create `/etc/systemd/system/ccdemo.service`:
+Create `/etc/systemd/system/smspanel.service`:
 
 ```ini
 [Unit]
@@ -209,9 +209,9 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/path/to/ccdemo
-Environment="PATH=/path/to/ccdemo/.venv/bin"
-ExecStart=/path/to/ccdemo/.venv/bin/gunicorn -w 4 -b 0.0.0.0:3570 run:app
+WorkingDirectory=/path/to/smspanel
+Environment="PATH=/path/to/smspanel/.venv/bin"
+ExecStart=/path/to/smspanel/.venv/bin/gunicorn -w 4 -b 0.0.0.0:3570 run:app
 Restart=always
 
 [Install]
@@ -220,9 +220,9 @@ WantedBy=multi-user.target
 
 Enable and start:
 ```bash
-sudo systemctl enable ccdemo
-sudo systemctl start ccdemo
-sudo systemctl status ccdemo
+sudo systemctl enable smspanel
+sudo systemctl start smspanel
+sudo systemctl status smspanel
 ```
 
 #### 5. Reverse Proxy Configuration (Optional)
@@ -261,7 +261,7 @@ Create cron job for daily backups:
 crontab -e
 
 # Add daily backup at 2 AM
-0 2 * * * cp /path/to/ccdemo/instance/sms.db /backups/sms_$(date +\%Y\%m\%d).db
+0 2 * * * cp /path/to/smspanel/instance/sms.db /backups/sms_$(date +\%Y\%m\%d).db
 ```
 
 #### 8. Monitoring and Logging
@@ -305,7 +305,7 @@ ruff format .
 ## Project Structure
 
 ```
-ccdemo/
+smspanel/
 ├── src/                    # Source code
 │   └── ccdemo/
 │       ├── models.py        # Database models (User, Message, Recipient)
