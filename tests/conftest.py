@@ -2,8 +2,8 @@
 
 import pytest
 import uuid
-from ccdemo import create_app, db
-from ccdemo.models import User, Message, Recipient
+from smspanel import create_app, db
+from smspanel.models import User, Message, Recipient
 
 
 @pytest.fixture(scope="function")
