@@ -148,7 +148,6 @@ Create `.env` file in project root:
 # Flask Configuration
 FLASK_ENV=production
 SECRET_KEY=<generate-strong-random-key>
-JWT_SECRET_KEY=<generate-strong-random-key>
 
 # Database
 DATABASE_URL=sqlite:///instance/sms.db
@@ -157,9 +156,6 @@ DATABASE_URL=sqlite:///instance/sms.db
 HKT_BASE_URL=https://cst01.1010.com.hk/gateway/gateway.jsp
 HKT_APPLICATION_ID=YourAppID
 HKT_SENDER_NUMBER=YourSenderNumber
-
-# API Key (for alternative auth)
-API_KEY=<your-api-key>
 ```
 
 Generate secure keys using:
@@ -349,17 +345,20 @@ rm instance/sms.db
 
 ## Configuration
 
-Configuration is in `src/ccdemo/config.py`:
+Configuration is in `src/ccdemo/config.py`. The following environment variables are required:
+
+| Setting | Description | Environment Variable |
+|---------|-------------|---------------------|
+| `DATABASE_URL` | Database path | `DATABASE_URL` |
+| `HKT_BASE_URL` | HKT SMS gateway | `HKT_BASE_URL` |
+| `HKT_APPLICATION_ID` | HKT app ID | `HKT_APPLICATION_ID` |
+| `HKT_SENDER_NUMBER` | HKT sender number | `HKT_SENDER_NUMBER` |
+
+Optional settings (with defaults):
 
 | Setting | Description | Default | Environment Variable |
 |---------|-------------|----------|---------------------|
 | `SECRET_KEY` | Flask session key | dev-secret-key | `SECRET_KEY` |
-| `DATABASE_URL` | Database path | sqlite:///sms.db | `DATABASE_URL` |
-| `JWT_SECRET_KEY` | Token signing key | dev-jwt-key | `JWT_SECRET_KEY` |
-| `HKT_BASE_URL` | HKT SMS gateway | Mock server URL | `HKT_BASE_URL` |
-| `HKT_APPLICATION_ID` | HKT app ID | LabourDept | `HKT_APPLICATION_ID` |
-| `HKT_SENDER_NUMBER` | HKT sender number | 852520702793127 | `HKT_SENDER_NUMBER` |
-| `API_KEY` | REST auth fallback | default-api-key | `API_KEY` |
 
 ## Phone Number Format
 

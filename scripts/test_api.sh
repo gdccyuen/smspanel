@@ -35,14 +35,6 @@
     -H "Authorization: Bearer $TOKEN" \
     -d '{"recipient":"87654321","content":"Test error message"}' | jq
 
-  # Send Error SMS
-  echo ""
-  echo "=== Send Error SMS ==="
-  curl -s -X POST $BASE_URL/sms \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $TOKEN" \
-    -d '{"recipient":"87654321","content":"Test error message"}' | jq
-
   # Send Bulk SMS
   echo ""
   echo "=== Send Bulk SMS ==="

@@ -1,7 +1,17 @@
-"""Configuration for the SMS application."""
+"""Configuration for the SMS application.
+
+Environment Variables:
+    Required:
+        DATABASE_URL - SQLAlchemy database connection string
+        HKT_BASE_URL - HKT SMS gateway URL
+        HKT_APPLICATION_ID - HKT SMS API application ID
+        HKT_SENDER_NUMBER - HKT SMS sender number
+
+    Optional (with defaults):
+        SECRET_KEY - Flask session encryption (default: dev key)
+"""
 
 import os
-from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,25 +27,16 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///sms.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # JWT
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", os.getenv("SECRET_KEY", "jwt-secret-key"))
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
-
     # HKT SMS
-    HKT_BASE_URL = "https://cst01.1010.com.hk/gateway/gateway.jsp"
-    HKT_APPLICATION_ID = os.getenv("HKT_APPLICATION_ID", "LabourDept")
-    HKT_SENDER_NUMBER = os.getenv("HKT_SENDER_NUMBER", "852520702793127")
-
-    # API Key for REST auth (fallback)
-    API_KEY = os.getenv("API_KEY", "default-api-key-for-development")
+    HKT_BASE_URL = os.getenv("HKT_BASE_URL")
+    HKT_APPLICATION_ID = os.getenv("HKT_APPLICATION_ID")
+    HKT_SENDER_NUMBER = os.getenv("HKT_SENDER_NUMBER")
 
 
 class DevelopmentConfig(Config):
     """Development configuration."""
 
     DEBUG = True
-    # Use mock HKT API for development by default
-    HKT_BASE_URL = os.getenv("HKT_BASE_URL", "http://127.0.0.1:5555/gateway/gateway.jsp")
 
 
 class ProductionConfig(Config):
