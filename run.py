@@ -1,6 +1,6 @@
 """Entry point for running the Flask application."""
 
-from ccdemo import create_app
+from smspanel import create_app
 import os
 
 app = create_app(os.getenv("FLASK_ENV", "development"))
