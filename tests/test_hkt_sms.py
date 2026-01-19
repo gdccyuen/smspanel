@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from ccdemo.services.hkt_sms import HKTSMSService
+from smspanel.services.hkt_sms import HKTSMSService
 from .mocks import MockHKTPost, MockHKTResponse
 
 
