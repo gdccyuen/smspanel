@@ -5,7 +5,11 @@ from flask_login import current_user
 
 from .. import db
 from ..models import User
-from ..constants.messages import AUTH_USER_NOT_FOUND, USER_CANNOT_DISABLE_SELF, USER_CANNOT_DELETE_SELF
+from ..constants.messages import (
+    AUTH_USER_NOT_FOUND,
+    USER_CANNOT_DISABLE_SELF,
+    USER_CANNOT_DELETE_SELF,
+)
 
 
 def get_user_or_redirect(user_id: int, redirect_route: str = "web.web_admin.users"):

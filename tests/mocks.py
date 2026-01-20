@@ -15,6 +15,7 @@ class MockSMSResponse:
         """Raise HTTPError for bad status codes."""
         if self.status_code >= 400:
             from requests.exceptions import HTTPError
+
             raise HTTPError(response=self)
 
 
@@ -35,6 +36,7 @@ class MockHKTPost:
         # Simulate random failures
         if random.random() < self.failure_rate:
             from requests.exceptions import RequestException
+
             raise RequestException("Simulated SMS API failure")
 
         # Return successful response

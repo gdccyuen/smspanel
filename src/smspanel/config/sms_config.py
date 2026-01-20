@@ -33,7 +33,9 @@ class ConfigService:
         self.application_id = application_id
         self.sender_number = sender_number
 
-    def get_sms_config(self, default_base_url: str = "https://cst01.1010.com.hk/gateway/gateway.jsp") -> SMSConfig:
+    def get_sms_config(
+        self, default_base_url: str = "https://cst01.1010.com.hk/gateway/gateway.jsp"
+    ) -> SMSConfig:
         """Get SMS configuration with defaults applied.
 
         Args:

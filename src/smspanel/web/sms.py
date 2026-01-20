@@ -44,9 +44,8 @@ def dashboard():
         Message.created_at >= start_time
     )
 
-    messages = (
-        query.order_by(Message.created_at.desc())
-        .paginate(page=page, per_page=per_page, error_out=False)
+    messages = query.order_by(Message.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
     )
 
     total_messages = Message.query.filter_by(user_id=current_user.id).count()
@@ -123,6 +122,7 @@ def compose():
 
         # Send SMS via SMS gateway
         from ..utils.sms_helper import get_sms_service
+
         sms_service = get_sms_service()
         result = sms_service.send_bulk(valid_recipients, sms_content)
 
@@ -157,9 +157,8 @@ def history():
     if search:
         query = query.filter(Message.content.ilike(f"%{search}%"))
 
-    messages = (
-        query.order_by(Message.created_at.desc())
-        .paginate(page=page, per_page=per_page, error_out=False)
+    messages = query.order_by(Message.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
     )
 
     return render_template(

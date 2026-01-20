@@ -25,7 +25,9 @@ def validate_json(required_fields: list[str] | None = None):
                 return bad_request("Request body must be valid JSON", "INVALID_JSON")
 
             if required_fields:
-                missing_fields = [field for field in required_fields if field not in data or not data[field]]
+                missing_fields = [
+                    field for field in required_fields if field not in data or not data[field]
+                ]
                 if missing_fields:
                     return bad_request(
                         f"Missing required field(s): {', '.join(missing_fields)}",

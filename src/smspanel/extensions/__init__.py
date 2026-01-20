@@ -50,4 +50,3 @@ def init_all(app):
 # Re-exports for backwards compatibility
 # Tests import db and login_manager directly from smspanel.extensions
 __all__ = ["db", "login_manager", "csrf", "init_db", "init_login", "init_csrf", "init_all"]
-

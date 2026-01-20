@@ -70,9 +70,7 @@ class ProductionConfig(Config):
             )
         # Ensure key is sufficiently long
         if len(self.SECRET_KEY) < 32:
-            raise ValueError(
-                "SECRET_KEY must be at least 32 characters long."
-            )
+            raise ValueError("SECRET_KEY must be at least 32 characters long.")
 
 
 class TestingConfig(Config):

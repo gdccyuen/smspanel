@@ -12,7 +12,9 @@ class TestHKTSMSService:
 
     def test_init_with_defaults(self):
         """Test service initialization with config service."""
-        config_service = ConfigService(base_url="https://test.com", application_id="test-app", sender_number="12345")
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
         service = HKTSMSService(config_service)
         config = service._get_config()
         assert config.base_url == "https://test.com"
@@ -51,7 +53,9 @@ class TestHKTSMSService:
     def test_send_single_success(self, mock_post, app):
         """Test successful single SMS send."""
         mock_post.side_effect = MockHKTPost(failure_rate=0, min_delay=0, max_delay=0)
-        config_service = ConfigService(base_url="https://test.com", application_id="test-app", sender_number="12345")
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
         service = HKTSMSService(config_service)
         result = service.send_single("85212345678", "Test message")
         assert result["success"] is True
@@ -65,7 +69,9 @@ class TestHKTSMSService:
     def test_send_single_http_error(self, mock_post, app):
         """Test single SMS send with HTTP error."""
         mock_post.side_effect = MockHKTPost(failure_rate=1.0, min_delay=0, max_delay=0)
-        config_service = ConfigService(base_url="https://test.com", application_id="test-app", sender_number="12345")
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
         service = HKTSMSService(config_service)
         result = service.send_single("85212345678", "Test message")
         assert result["success"] is False
@@ -75,7 +81,9 @@ class TestHKTSMSService:
     def test_send_single_with_unicode(self, mock_post, app):
         """Test single SMS send with Unicode characters."""
         mock_post.side_effect = MockHKTPost(failure_rate=0, min_delay=0, max_delay=0)
-        config_service = ConfigService(base_url="https://test.com", application_id="test-app", sender_number="12345")
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
         service = HKTSMSService(config_service)
         result = service.send_single("85212345678", "Test message with unicode")
         assert result["success"] is True
@@ -86,7 +94,9 @@ class TestHKTSMSService:
     def test_send_bulk_all_success(self, mock_post, app):
         """Test bulk SMS send with all successful."""
         mock_post.side_effect = MockHKTPost(failure_rate=0, min_delay=0, max_delay=0)
-        config_service = ConfigService(base_url="https://test.com", application_id="test-app", sender_number="12345")
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
         service = HKTSMSService(config_service)
         recipients = ["85212345678", "85287654321"]
         result = service.send_bulk(recipients, "Test bulk message")
@@ -108,10 +118,13 @@ class TestHKTSMSService:
                 return MockSMSResponse(status_code=200, text="SUCCESS")
             else:
                 from requests.exceptions import RequestException
+
                 raise RequestException("Connection failed")
 
         mock_post.side_effect = side_effect_func
-        config_service = ConfigService(base_url="https://test.com", application_id="test-app", sender_number="12345")
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
         service = HKTSMSService(config_service)
         recipients = ["85212345678", "85287654321"]
         result = service.send_bulk(recipients, "Test bulk message")
@@ -125,7 +138,9 @@ class TestHKTSMSService:
     @patch("smspanel.services.hkt_sms.requests.post")
     def test_send_bulk_empty_list(self, mock_post, app):
         """Test bulk SMS send with empty recipient list."""
-        config_service = ConfigService(base_url="https://test.com", application_id="test-app", sender_number="12345")
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
         service = HKTSMSService(config_service)
         result = service.send_bulk([], "Test bulk message")
         assert result["success"] is True

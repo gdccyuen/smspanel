@@ -1,6 +1,5 @@
 """Message constants for flash messages and user notifications."""
 
-
 # Authentication messages
 AUTH_USERNAME_PASSWORD_REQUIRED = "Username and password are required."
 AUTH_USER_NOT_FOUND = "User not found."

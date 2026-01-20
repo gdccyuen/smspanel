@@ -63,11 +63,16 @@ def not_found(message: str = "Resource not found", error_code: str = "NOT_FOUND"
     return APIResponse.error(message, 404, error_code)
 
 
-def service_unavailable(message: str = "Service is busy, please try again later", error_code: str = "SERVICE_UNAVAILABLE") -> tuple:
+def service_unavailable(
+    message: str = "Service is busy, please try again later",
+    error_code: str = "SERVICE_UNAVAILABLE",
+) -> tuple:
     """Return service unavailable error (503)."""
     return APIResponse.error(message, 503, error_code)
 
 
-def internal_server_error(message: str = "Internal server error", error_code: str = "INTERNAL_SERVER_ERROR") -> tuple:
+def internal_server_error(
+    message: str = "Internal server error", error_code: str = "INTERNAL_SERVER_ERROR"
+) -> tuple:
     """Return internal server error (500)."""
     return APIResponse.error(message, 500, error_code)

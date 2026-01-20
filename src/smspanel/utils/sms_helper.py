@@ -75,9 +75,7 @@ def update_message_status_from_result(message: Message, result: dict[str, Any]) 
         result: Result dict from HKT SMS service.
     """
     all_sent = result["success"]
-    message.status = (
-        "sent" if all_sent else "partial" if result["successful"] > 0 else "failed"
-    )
+    message.status = "sent" if all_sent else "partial" if result["successful"] > 0 else "failed"
     if all_sent:
         message.sent_at = datetime.now(timezone.utc)
 
@@ -91,7 +89,9 @@ def update_message_status_from_result(message: Message, result: dict[str, Any]) 
             recipient_record.error_message = recipient_result.get("error", "Unknown error")
 
 
-def update_single_sms_status(message: Message, recipient: Recipient, result: dict[str, Any]) -> None:
+def update_single_sms_status(
+    message: Message, recipient: Recipient, result: dict[str, Any]
+) -> None:
     """Update status for single SMS send.
 
     Args:

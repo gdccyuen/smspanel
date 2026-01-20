@@ -6,7 +6,7 @@ from typing import Optional
 from flask import Flask
 
 from .config import ConfigService
-from .extensions import db, csrf, init_all
+from .extensions import db, init_all
 from .models import User
 
 
@@ -29,6 +29,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
 
     # Configure login manager
     from .extensions import login_manager
+
     login_manager.login_view = "web.web_auth.login"
     login_manager.login_message = "Please log in to access this page."
 
@@ -67,6 +68,7 @@ def _load_config(app: Flask, config_name: Optional[str]) -> None:
 
     # Initialize SMS helper with config service
     from .utils.sms_helper import init_sms_service
+
     init_sms_service(config_service)
 
 

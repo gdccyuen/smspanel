@@ -1,5 +1,5 @@
 """Tests for security hardening."""
-import pytest
+
 import inspect
 
 
@@ -25,8 +25,8 @@ def test_production_secret_key_not_default():
 def test_env_documentation_exists():
     """Environment variables should be documented."""
     import os
-    docs_exist = (
-        os.path.exists(".env.example") or
-        "ADMIN_PASSWORD" in (open("README.md").read() if os.path.exists("README.md") else "")
+
+    docs_exist = os.path.exists(".env.example") or "ADMIN_PASSWORD" in (
+        open("README.md").read() if os.path.exists("README.md") else ""
     )
     assert docs_exist, "ADMIN_PASSWORD env var should be documented"
