@@ -7,5 +7,5 @@ flask-login>=0.6.3
 requests>=2.31.0
 python-dotenv>=1.0.0
 pyjwt>=2.8.0
-urllib3>=1.26.19
+urllib3>=2.6.3
 zipp>=3.19.1
