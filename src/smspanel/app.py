@@ -1,9 +1,9 @@
 """Application factory for creating and configuring Flask app."""
 
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from flask import Flask
+from flask import Flask, g, request
 
 from smspanel.config import ConfigService
 from smspanel.extensions import db, init_all
@@ -24,6 +24,9 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     # Load configuration
     _load_config(app, config_name)
 
+    # Setup logging
+    _setup_logging(app)
+
     # Initialize extensions
     init_all(app)
 
@@ -35,6 +38,27 @@ def create_app(config_name: Optional[str] = None) -> Flask:
 
     # Register template filters
     _register_filters(app)
+
+    # Register before/after request handlers for request ID tracking
+    @app.before_request
+    def before_request():
+        from smspanel.utils.logging import set_request_id, generate_request_id
+
+        req_id = request.headers.get("X-Request-ID") or generate_request_id()
+        set_request_id(req_id)
+        g.start_time = datetime.now(timezone.utc)
+
+    @app.after_request
+    def after_request(response):
+        from smspanel.utils.logging import log_request
+
+        if hasattr(g, "start_time"):
+            duration_ms = (datetime.now(timezone.utc) - g.start_time).total_seconds() * 1000
+        else:
+            duration_ms = 0
+
+        log_request(request, response.status_code, duration_ms)
+        return response
 
     # Register blueprints
     _register_blueprints(app)
@@ -70,6 +94,17 @@ def _load_config(app: Flask, config_name: Optional[str]) -> None:
     from smspanel.utils.sms_helper import init_sms_service
 
     init_sms_service(config_service)
+
+
+def _setup_logging(app: Flask) -> None:
+    """Configure application logging.
+
+    Args:
+        app: Flask application instance.
+    """
+    from smspanel.utils.logging import setup_app_logging
+
+    setup_app_logging(app)
 
 
 def _register_filters(app: Flask) -> None:
