@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Message Query - SMS Application{% endblock %}
+
+{% block content %}
+<div class="admin-messages">
+    <div class="admin-header">
+        <h1>Message Query</h1>
+        <p>Query messages by user, status, or date range</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-form">
+        <form method="GET" action="{{ url_for('web_admin_messages.messages') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="user_id">User</label>
+                    <select name="user_id" id="user_id">
+                        <option value="">All Users</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {{ 'selected' if user_id == user.id }}>
+                            {{ user.username }} (ID: {{ user.id }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select name="status" id="status">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {{ 'selected' if status == 'pending' }}>Pending</option>
+                        <option value="sent" {{ 'selected' if status == 'sent' }}>Sent</option>
+                        <option value="failed" {{ 'selected' if status == 'failed' }}>Failed</option>
+                        <option value="partial" {{ 'selected' if status == 'partial' }}>Partial</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="datetime-local" name="start_date" id="start_date"
+                           value="{{ start_date if start_date else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="datetime-local" name="end_date" id="end_date"
+                           value="{{ end_date if end_date else '' }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="{{ url_for('web_admin_messages.messages') }}" class="btn btn-secondary">Clear</a>
+        </form>
+    </div>
+
+    <!-- Results -->
+    <div class="results-info">
+        <p>Found {{ total_count }} messages</p>
+    </div>
+
+    <!-- Messages Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Content</th>
+                    <th>Status</th>
+                    <th>Recipients</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in messages.items %}
+                <tr class="status-{{ msg.status }}">
+                    <td>{{ msg.id }}</td>
+                    <td>
+                        {% if msg.user %}
+                        <a href="{{ url_for('web_admin_messages.messages', user_id=msg.user_id) }}">
+                            {{ msg.user.username }}
+                        </a>
+                        {% else %}
+                        User {{ msg.user_id }}
+                        {% endif %}
+                    </td>
+                    <td>{{ msg.content[:50] }}{% if msg.content|length > 50 %}...{% endif %}</td>
+                    <td>
+                        <span class="status-badge {{ msg.status }}">{{ msg.status }}</span>
+                    </td>
+                    <td>{{ msg.recipient_count }} ({{ msg.success_count }}/{{ msg.recipient_count }})</td>
+                    <td>{{ msg.created_at|hkt }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="empty-state">No messages found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if messages.pages > 1 %}
+    <div class="pagination">
+        {% for p in range(1, messages.pages + 1) %}
+        <a href="{{ url_for('web_admin_messages.messages', page=p, user_id=user_id, status=status, start_date=start_date, end_date=end_date) }}"
+           class="btn {{ 'btn-primary' if p == page else 'btn-secondary' }}">
+            {{ p }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
