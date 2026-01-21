@@ -476,6 +476,30 @@ Optional settings (with defaults):
 | `SECRET_KEY` | Flask session key (min 32 chars) | None (required) | `SECRET_KEY` |
 | `ADMIN_PASSWORD` | Admin user password | Auto-generated | `ADMIN_PASSWORD` |
 
+## Type Safety
+
+This project uses Python type hints for improved code quality and IDE support:
+
+- **Status Enums**: `MessageStatus`, `RecipientStatus`, `DeadLetterStatus` provide type-safe status values
+- **Constants**: `SMS_REQUEST_TIMEOUT` extracted for easy configuration
+- **Type Checking**: Package supports PEP 561 type checking with `py.typed` marker
+
+Import type-safe enums:
+```python
+from smspanel.models import MessageStatus, RecipientStatus, DeadLetterStatus
+
+# Use enums instead of magic strings
+if message.status == MessageStatus.SENT:
+    ...
+```
+
+Constants:
+```python
+from smspanel.services.hkt_sms import SMS_REQUEST_TIMEOUT
+
+timeout = SMS_REQUEST_TIMEOUT  # 30 seconds
+```
+
 ## Phone Number Format
 
 Hong Kong phone numbers must match format: `4 digits, optional space, 4 digits`
