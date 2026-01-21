@@ -44,16 +44,18 @@ class TestSMSAPI:
         )
         assert response.status_code == 401
         data = response.json
-        assert data["success"] is False
         assert "error" in data
+        assert isinstance(data["error"], dict)
+        assert "code" in data["error"]
 
     def test_send_sms_missing_fields(self, client, auth_headers):
         """Test sending SMS with missing fields."""
         response = client.post("/api/sms", json={"recipient": "85212345678"}, headers=auth_headers)
         assert response.status_code == 400
         data = response.json
-        assert data["success"] is False
         assert "error" in data
+        assert isinstance(data["error"], dict)
+        assert "code" in data["error"]
 
     def test_send_sms_invalid_request(self, client, auth_headers):
         """Test sending SMS to HKT (will be queued)."""
@@ -84,8 +86,9 @@ class TestSMSAPI:
         )
         assert response.status_code == 400
         data = response.json
-        assert data["success"] is False
         assert "error" in data
+        assert isinstance(data["error"], dict)
+        assert "code" in data["error"]
 
     def test_get_message_unauthorized(self, client, test_message):
         """Test getting message details without authorization."""
@@ -97,8 +100,9 @@ class TestSMSAPI:
         response = client.get("/api/sms/99999", headers=auth_headers)
         assert response.status_code == 404
         data = response.json
-        assert data["success"] is False
         assert "error" in data
+        assert isinstance(data["error"], dict)
+        assert "code" in data["error"]
 
     def test_get_message_success(self, client, auth_headers, test_message):
         """Test getting message details successfully."""

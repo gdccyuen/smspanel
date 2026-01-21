@@ -30,6 +30,14 @@ class APIResponse:
     def error(message: str, status_code: int = 400, error_code: str | None = None) -> tuple:
         """Return an error response.
 
+        New format:
+        {
+            "error": {
+                "code": "ERROR_CODE",
+                "message": "Human-readable error message"
+            }
+        }
+
         Args:
             message: Error message.
             status_code: HTTP status code (default: 400).
@@ -38,13 +46,11 @@ class APIResponse:
         Returns:
             JSON error response tuple.
         """
-        response_dict: dict[str, Any] = {
-            "success": False,
-            "error": message,
-        }
+        error_dict: dict[str, Any] = {"message": message}
         if error_code:
-            response_dict["error_code"] = error_code
-        return jsonify(response_dict), status_code
+            error_dict["code"] = error_code
+
+        return jsonify({"error": error_dict}), status_code
 
 
 # Common error responses
