@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dead Letter Queue - SMS Application{% endblock %}
+
+{% block content %}
+<div class="admin-dead-letter">
+    <div class="admin-header">
+        <h1>Dead Letter Queue</h1>
+        <p>Messages that failed after all retry attempts</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-cards">
+        <div class="stat-card pending">
+            <h3>{{ stats.pending }}</h3>
+            <p>Pending</p>
+        </div>
+        <div class="stat-card retried">
+            <h3>{{ stats.retried }}</h3>
+            <p>Retried</p>
+        </div>
+        <div class="stat-card abandoned">
+            <h3>{{ stats.abandoned }}</h3>
+            <p>Abandoned</p>
+        </div>
+        <div class="stat-card total">
+            <h3>{{ stats.total }}</h3>
+            <p>Total</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <a href="{{ url_for('web_dead_letter.list_dead_letter') }}"
+           class="btn {{ 'btn-primary' if not current_status else 'btn-secondary' }}">
+            All
+        </a>
+        <a href="{{ url_for('web_dead_letter.list_dead_letter', status='pending') }}"
+           class="btn {{ 'btn-primary' if current_status == 'pending' else 'btn-secondary' }}">
+            Pending
+        </a>
+        <a href="{{ url_for('web_dead_letter.list_dead_letter', status='retried') }}"
+           class="btn {{ 'btn-primary' if current_status == 'retried' else 'btn-secondary' }}">
+            Retried
+        </a>
+        <a href="{{ url_for('web_dead_letter.list_dead_letter', status='abandoned') }}"
+           class="btn {{ 'btn-primary' if current_status == 'abandoned' else 'btn-secondary' }}">
+            Abandoned
+        </a>
+
+        {% if current_status == 'pending' %}
+        <form action="{{ url_for('web_dead_letter.retry_all_dead_letter') }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary"
+                    onclick="return confirm('Retry all pending messages?')">
+                Retry All Pending
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Dead Letter Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Recipient</th>
+                    <th>Content</th>
+                    <th>Error</th>
+                    <th>Retries</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in messages %}
+                <tr class="status-{{ msg.status }}">
+                    <td>{{ msg.id }}</td>
+                    <td>{{ msg.recipient }}</td>
+                    <td>{{ msg.content[:50] }}{% if msg.content|length > 50 %}...{% endif %}</td>
+                    <td>{{ msg.error_message[:50] }}{% if msg.error_message and msg.error_message|length > 50 %}...{% endif %}</td>
+                    <td>{{ msg.retry_count }}/{{ msg.max_retries }}</td>
+                    <td>
+                        <span class="status-badge {{ msg.status }}">{{ msg.status }}</span>
+                    </td>
+                    <td>{{ msg.created_at|hkt }}</td>
+                    <td>
+                        {% if msg.status == 'pending' and msg.can_retry() %}
+                        <form action="{{ url_for('web_dead_letter.retry_dead_letter', message_id=msg.id) }}" method="POST">
+                            <button type="submit" class="btn btn-sm btn-primary">Retry</button>
+                        </form>
+                        {% endif %}
+
+                        {% if msg.status == 'pending' %}
+                        <form action="{{ url_for('web_dead_letter.abandon_dead_letter', message_id=msg.id) }}" method="POST">
+                            <button type="submit" class="btn btn-sm btn-secondary"
+                                    onclick="return confirm('Abandon this message?')">
+                                Abandon
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="empty-state">No dead letter messages found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
