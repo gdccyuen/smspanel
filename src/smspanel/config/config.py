@@ -29,6 +29,13 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///sms.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Connection Pool Settings (for MySQL in production)
+    # These are ignored by SQLite but used by MySQL/PostgreSQL
+    SQLALCHEMY_POOL_SIZE = 10
+    SQLALCHEMY_POOL_MAX_OVERFLOW = 20
+    SQLALCHEMY_POOL_RECYCLE = 3600  # Recycle connections after 1 hour
+    SQLALCHEMY_POOL_PRE_PING = True  # Verify connections before use
+
     # SMS Gateway
     SMS_BASE_URL = os.getenv("SMS_BASE_URL")
     SMS_APPLICATION_ID = os.getenv("SMS_APPLICATION_ID")
