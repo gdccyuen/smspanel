@@ -385,29 +385,34 @@ ruff format .
 smspanel/
 ├── src/                    # Source code
 │   └── smspanel/
-│       ├── models.py        # Database models (User, Message, Recipient)
-│       ├── config.py       # Configuration classes
-│       ├── __init__.py     # App factory
-│       ├── api/            # REST API endpoints
+│       ├── models.py        # Database models (User, Message, Recipient, DeadLetterMessage)
+│       ├── config.py        # Configuration classes
+│       ├── __init__.py      # App factory
+│       ├── api/             # REST API endpoints
 │       │   ├── __init__.py
-│       │   └── sms.py     # SMS endpoints
-│       ├── web/            # Web UI
+│       │   └── sms.py       # SMS endpoints
+│       ├── web/             # Web UI
 │       │   ├── __init__.py
-│       │   ├── auth.py     # Login/logout
-│       │   ├── sms.py      # SMS composition/history
-│       │   └── admin.py    # User management (admin only)
+│       │   ├── auth.py      # Login/logout
+│       │   ├── sms.py       # SMS composition/history
+│       │   ├── admin.py     # User management (admin only)
+│       │   └── dead_letter.py  # Dead letter queue management
 │       ├── services/        # Business logic
-│       │   └── hkt_sms.py # SMS service
-│       └── templates/      # Jinja2 templates
+│       │   ├── hkt_sms.py   # SMS service with retry logic
+│       │   ├── queue.py     # Async task queue
+│       │   └── dead_letter.py  # Dead letter queue service
+│       └── templates/       # Jinja2 templates
 │           ├── admin/
-│           ├── *.html
+│           │   ├── users.html
+│           │   └── dead_letter.html
+│           └── *.html
 ├── instance/               # SQLite database (auto-created)
-├── static/                # CSS, JS assets
-├── tests/                 # Pytest tests
-├── scripts/               # Utility scripts
-│   └── mock_hkt_api.py
-├── run.py                 # Application entry point
-└── pyproject.toml         # Project config
+├── static/                 # CSS, JS assets
+├── tests/                  # Pytest tests
+├── scripts/                # Utility scripts
+│   └── mock_sms_api.py     # Mock SMS gateway for testing
+├── run.py                  # Application entry point
+└── pyproject.toml          # Project config
 ```
 
 ## Database

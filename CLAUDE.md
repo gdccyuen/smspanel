@@ -33,6 +33,7 @@ The app uses Flask's application factory pattern in `app.py`. `create_app()` ret
 - `web/auth.py` - `/login`, `/logout` (Flask-Login session-based auth)
 - `web/sms.py` - `/`, `/compose`, `/history`, `/history/<id>`
 - `web/admin.py` - `/admin/users/*` (admin-only user management)
+- `web/dead_letter.py` - `/admin/dead-letter` (dead letter queue management)
 
 ### Service Layer
 
@@ -40,6 +41,12 @@ The app uses Flask's application factory pattern in `app.py`. `create_app()` ret
 - Encapsulates SMS gateway interactions
 - Requires `ConfigService` injection (initialized in app factory)
 - Methods: `send_single()`, `send_bulk()`
+- Uses `tenacity` for retry with exponential backoff (3 attempts, 2-10s delay)
+
+**DeadLetterQueue** (`services/dead_letter.py`):
+- Persists failed SMS messages for later review/retry
+- Methods: `add()`, `get_pending()`, `get_all()`, `retry()`, `mark_retried()`, `mark_abandoned()`, `get_stats()`
+- Failed tasks from task queue are automatically captured here
 
 **ConfigService** (`config/sms_config.py`):
 - Manages SMS gateway configuration
@@ -61,6 +68,7 @@ In-memory threading-based queue for async SMS processing:
 **User**: id, username, password_hash, token, is_admin, is_active, created_at
 **Message**: id, user_id, content, status, created_at, sent_at, hkt_response
 **Recipient**: id, message_id, phone, status, error_message
+**DeadLetterMessage**: id, message_id, recipient, content, error_message, error_type, retry_count, max_retries, status, created_at, retried_at, last_attempt_at
 
 Statuses: pending, sent, failed, partial
 
