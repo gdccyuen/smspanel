@@ -34,6 +34,7 @@ def test_package_marked_as_type_checked():
 
     # Verify key exports exist
     from smspanel import create_app, db, login_manager
+
     assert create_app is not None
     assert db is not None
     assert login_manager is not None

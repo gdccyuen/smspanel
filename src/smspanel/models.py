@@ -80,7 +80,9 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     content = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(20), default=MessageStatus.PENDING, index=True)  # See MessageStatus enum
+    status = db.Column(
+        db.String(20), default=MessageStatus.PENDING, index=True
+    )  # See MessageStatus enum
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     sent_at = db.Column(db.DateTime, nullable=True)
     hkt_response = db.Column(db.Text, nullable=True)
@@ -146,7 +148,9 @@ class DeadLetterMessage(db.Model):
     retry_count = db.Column(db.Integer, default=0)
     max_retries = db.Column(db.Integer, default=3)
     # Status
-    status = db.Column(db.String(20), default=DeadLetterStatus.PENDING, index=True)  # See DeadLetterStatus enum
+    status = db.Column(
+        db.String(20), default=DeadLetterStatus.PENDING, index=True
+    )  # See DeadLetterStatus enum
     # Timestamps
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     retried_at = db.Column(db.DateTime, nullable=True)

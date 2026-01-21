@@ -20,7 +20,11 @@ from smspanel.constants.messages import (
     USER_DELETED,
     USER_TOKEN_REGENERATED,
 )
-from smspanel.utils.admin import get_user_or_redirect, check_self_action_allowed, validate_passwords_match
+from smspanel.utils.admin import (
+    get_user_or_redirect,
+    check_self_action_allowed,
+    validate_passwords_match,
+)
 from smspanel.utils.database import db_transaction
 
 web_admin_bp = Blueprint("web_admin", __name__, url_prefix="/admin")
