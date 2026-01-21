@@ -3,9 +3,9 @@
 from flask import redirect, url_for, flash
 from flask_login import current_user
 
-from .. import db
-from ..models import User
-from ..constants.messages import (
+from smspanel import db
+from smspanel.models import User
+from smspanel.constants.messages import (
     AUTH_USER_NOT_FOUND,
     USER_CANNOT_DISABLE_SELF,
     USER_CANNOT_DELETE_SELF,

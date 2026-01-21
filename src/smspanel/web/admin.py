@@ -5,8 +5,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from werkzeug.wrappers import Response
 
-from ..models import User
-from ..constants.messages import (
+from smspanel.models import User
+from smspanel.constants.messages import (
     AUTH_USERNAME_PASSWORD_REQUIRED,
     AUTH_PASSWORDS_DO_NOT_MATCH,
     AUTH_NEW_PASSWORD_REQUIRED,
@@ -20,8 +20,8 @@ from ..constants.messages import (
     USER_DELETED,
     USER_TOKEN_REGENERATED,
 )
-from ..utils.admin import get_user_or_redirect, check_self_action_allowed, validate_passwords_match
-from ..utils.database import db_transaction
+from smspanel.utils.admin import get_user_or_redirect, check_self_action_allowed, validate_passwords_match
+from smspanel.utils.database import db_transaction
 
 web_admin_bp = Blueprint("web_admin", __name__, url_prefix="/admin")
 

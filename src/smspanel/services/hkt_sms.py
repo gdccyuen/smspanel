@@ -9,7 +9,7 @@ from tenacity import (
 )
 from typing import Dict, Optional
 
-from ..config import ConfigService, SMSConfig
+from smspanel.config import ConfigService, SMSConfig
 
 
 class SMSError(Exception):

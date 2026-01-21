@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Callable, Optional
 
-from ..extensions import db
+from smspanel.extensions import db
 
 logger = logging.getLogger(__name__)
 

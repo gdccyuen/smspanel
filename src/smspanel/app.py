@@ -5,9 +5,9 @@ from typing import Optional
 
 from flask import Flask
 
-from .config import ConfigService
-from .extensions import db, init_all
-from .models import User
+from smspanel.config import ConfigService
+from smspanel.extensions import db, init_all
+from smspanel.models import User
 
 
 def create_app(config_name: Optional[str] = None) -> Flask:
@@ -28,7 +28,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     init_all(app)
 
     # Configure login manager
-    from .extensions import login_manager
+    from smspanel.extensions import login_manager
 
     login_manager.login_view = "web.web_auth.login"
     login_manager.login_message = "Please log in to access this page."
@@ -55,7 +55,7 @@ def _load_config(app: Flask, config_name: Optional[str]) -> None:
         app: Flask application instance.
         config_name: Configuration name.
     """
-    from .config import config as config_dict
+    from smspanel.config import config as config_dict
 
     app.config.from_object(config_dict.get(config_name, config_dict["default"]))
 
@@ -67,7 +67,7 @@ def _load_config(app: Flask, config_name: Optional[str]) -> None:
     )
 
     # Initialize SMS helper with config service
-    from .utils.sms_helper import init_sms_service
+    from smspanel.utils.sms_helper import init_sms_service
 
     init_sms_service(config_service)
 
@@ -102,8 +102,8 @@ def _register_blueprints(app: Flask) -> None:
     Args:
         app: Flask application instance.
     """
-    from .api import api_bp
-    from .web import web_bp
+    from smspanel.api import api_bp
+    from smspanel.web import web_bp
 
     app.register_blueprint(api_bp, url_prefix="/api")
     app.register_blueprint(web_bp)
@@ -115,7 +115,7 @@ def _init_task_queue(app: Flask) -> None:
     Args:
         app: Flask application instance.
     """
-    from .services.queue import init_task_queue
+    from smspanel.services.queue import init_task_queue
 
     num_workers = app.config.get("SMS_QUEUE_WORKERS", 4)
     max_queue_size = app.config.get("SMS_QUEUE_MAX_SIZE", 1000)

@@ -2,12 +2,12 @@
 
 from flask import Blueprint, request
 
-from .. import db
-from ..models import User, Message, Recipient
-from ..services.queue import get_task_queue
-from ..utils.sms_helper import process_single_sms_task, process_bulk_sms_task
-from .responses import APIResponse, unauthorized, bad_request, service_unavailable, not_found
-from .decorators import validate_json
+from smspanel import db
+from smspanel.models import User, Message, Recipient
+from smspanel.services.queue import get_task_queue
+from smspanel.utils.sms_helper import process_single_sms_task, process_bulk_sms_task
+from smspanel.api.responses import APIResponse, unauthorized, bad_request, service_unavailable, not_found
+from smspanel.api.decorators import validate_json
 
 api_sms_bp = Blueprint("api_sms", __name__)
 

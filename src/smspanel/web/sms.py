@@ -4,20 +4,20 @@ from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 
-from ..models import Message
-from ..utils.validation import (
+from smspanel.models import Message
+from smspanel.utils.validation import (
     validate_enquiry_number,
     validate_message_content,
     validate_recipients,
     format_phone_error,
 )
-from ..utils.sms_helper import (
+from smspanel.utils.sms_helper import (
     create_message_record,
     create_recipient_records,
     update_message_status_from_result,
     get_flash_message_from_result,
 )
-from ..utils.database import db_transaction
+from smspanel.utils.database import db_transaction
 
 web_sms_bp = Blueprint("web_sms", __name__)
 
@@ -121,7 +121,7 @@ def compose():
             create_recipient_records(message.id, valid_recipients)
 
         # Send SMS via SMS gateway
-        from ..utils.sms_helper import get_sms_service
+        from smspanel.utils.sms_helper import get_sms_service
 
         sms_service = get_sms_service()
         result = sms_service.send_bulk(valid_recipients, sms_content)

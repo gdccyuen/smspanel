@@ -3,7 +3,7 @@
 import re
 from typing import Tuple
 
-from ..constants.messages import (
+from smspanel.constants.messages import (
     SMS_ENQUIRY_REQUIRED,
     SMS_ENQUIRY_INVALID,
     SMS_CONTENT_REQUIRED,

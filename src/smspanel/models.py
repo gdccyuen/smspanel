@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 import secrets
 
-from .extensions import db
+from smspanel.extensions import db
 
 
 class User(UserMixin, db.Model):

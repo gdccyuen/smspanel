@@ -2,7 +2,7 @@
 
 from contextlib import contextmanager
 
-from .. import db
+from smspanel import db
 
 
 @contextmanager

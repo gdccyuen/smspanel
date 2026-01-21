@@ -4,8 +4,8 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
-from ..services.dead_letter import get_dead_letter_queue
-from ..constants.messages import (
+from smspanel.services.dead_letter import get_dead_letter_queue
+from smspanel.constants.messages import (
     AUTH_ADMIN_REQUIRED,
     AUTH_LOGIN_REQUIRED,
 )

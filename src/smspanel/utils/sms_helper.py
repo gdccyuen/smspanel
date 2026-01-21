@@ -4,9 +4,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from .. import db
-from ..models import Message, Recipient
-from ..services.hkt_sms import HKTSMSService
+from smspanel import db
+from smspanel.models import Message, Recipient
+from smspanel.services.hkt_sms import HKTSMSService
 
 logger = logging.getLogger(__name__)
 

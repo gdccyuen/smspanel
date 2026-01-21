@@ -3,9 +3,9 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 
-from .. import db, login_manager
-from ..models import User
-from ..constants.messages import (
+from smspanel import db, login_manager
+from smspanel.models import User
+from smspanel.constants.messages import (
     AUTH_USERNAME_PASSWORD_REQUIRED,
     AUTH_INVALID_CREDENTIALS,
 )

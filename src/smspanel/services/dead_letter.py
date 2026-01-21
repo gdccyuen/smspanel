@@ -3,7 +3,7 @@
 import logging
 from typing import Optional, List
 
-from ..models import db, DeadLetterMessage
+from smspanel.models import db, DeadLetterMessage
 
 logger = logging.getLogger(__name__)
 
