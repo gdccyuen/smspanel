@@ -86,9 +86,7 @@ class HKTSMSService:
             return {
                 "success": False,
                 "error": str(e),
-                "status_code": getattr(e.response, "status_code", None)
-                if hasattr(e, "response")
-                else None,
+                "status_code": getattr(getattr(e, "response", None), "status_code", None),
             }
 
     def send_bulk(self, recipients: list[str], message: str) -> Dict[str, any]:

@@ -149,3 +149,44 @@ class TestHKTSMSService:
         assert result["failed"] == 0
         assert result["results"] == []
         mock_post.assert_not_called()
+
+    @patch("smspanel.services.hkt_sms.requests.post")
+    def test_send_single_handles_error_with_response(self, mock_post, app):
+        """send_single should handle errors with response attribute correctly."""
+        # Create a mock response object
+        mock_response = MockSMSResponse(status_code=400)
+
+        # Create a RequestException with a response attribute
+        from requests.exceptions import HTTPError
+
+        error = HTTPError("Bad request")
+        error.response = mock_response
+        mock_post.side_effect = error
+
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
+        service = HKTSMSService(config_service)
+        result = service.send_single("85212345678", "test message")
+
+        assert result["success"] is False
+        assert result["status_code"] == 400
+
+    @patch("smspanel.services.hkt_sms.requests.post")
+    def test_send_single_handles_error_without_response(self, mock_post, app):
+        """send_single should handle errors without response attribute correctly."""
+        # Create a RequestException without response attribute
+        from requests.exceptions import RequestException
+
+        error = RequestException("Connection failed")
+        # Don't set error.response to simulate missing attribute
+        mock_post.side_effect = error
+
+        config_service = ConfigService(
+            base_url="https://test.com", application_id="test-app", sender_number="12345"
+        )
+        service = HKTSMSService(config_service)
+        result = service.send_single("85212345678", "test message")
+
+        assert result["success"] is False
+        assert result["status_code"] is None
