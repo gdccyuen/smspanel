@@ -450,3 +450,37 @@ Hong Kong phone numbers must match format: `4 digits, optional space, 4 digits`
 - `1234-5678`
 - `123456789`
 - `12 3456`
+
+## Retry Logic
+
+The SMS service uses exponential backoff retry logic for transient failures:
+
+- **Max Attempts**: 3 retries per message
+- **Backoff**: Exponential with 2s minimum, 10s maximum
+- **Retried Errors**: Connection errors, timeouts
+
+Retry logic is implemented using the `tenacity` library.
+
+## Dead Letter Queue
+
+Failed SMS messages that cannot be delivered after all retry attempts are stored in the dead letter queue for later review and manual retry.
+
+### Accessing Dead Letter Queue
+
+1. Log in as admin
+2. Navigate to `/admin/dead-letter`
+
+### Dead Letter Queue Features
+
+- **View All**: Browse all failed messages with filtering by status
+- **Retry Individual**: Retry specific failed messages
+- **Retry All**: Retry all pending messages at once
+- **Abandon**: Mark messages as permanently failed
+
+### Message Status
+
+| Status | Description |
+|--------|-------------|
+| `pending` | Ready for retry |
+| `retried` | Successfully resent |
+| `abandoned` | Permanently failed after max retries |
