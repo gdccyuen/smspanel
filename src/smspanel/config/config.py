@@ -48,6 +48,10 @@ class Config:
     SMS_QUEUE_WORKERS = 4
     SMS_QUEUE_MAX_SIZE = 1000
 
+    # SMS Rate Limiting
+    SMS_RATE_PER_SEC: float = 2.0
+    SMS_BURST_CAPACITY: int = 4
+
 
 class DevelopmentConfig(Config):
     """Development configuration."""

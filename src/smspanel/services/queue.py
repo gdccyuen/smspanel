@@ -5,6 +5,8 @@ import queue
 import threading
 from typing import Optional
 
+from smspanel.utils.rate_limiter import get_rate_limiter
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class TaskQueue:
         self.num_workers = num_workers
         self.running = False
         self.app = None
+        self.rate_limiter = None
 
     def set_app(self, app):
         """Set the Flask app for app context.
@@ -64,6 +67,9 @@ class TaskQueue:
             try:
                 task_func, args, kwargs = self.queue.get(timeout=1.0)
                 try:
+                    # Acquire rate limiter token before processing
+                    if self.rate_limiter is not None:
+                        self.rate_limiter.acquire()
                     with self.app.app_context():
                         task_func(*args, **kwargs)
                 except Exception as e:
@@ -153,6 +159,9 @@ def init_task_queue(app, num_workers: int = 4, max_queue_size: int = 1000):
     global _task_queue
     _task_queue = TaskQueue(num_workers=num_workers, max_queue_size=max_queue_size)
     _task_queue.set_app(app)
+
+    # Set up rate limiter for workers
+    _task_queue.rate_limiter = get_rate_limiter()
 
     # Start workers immediately
     _task_queue.start()

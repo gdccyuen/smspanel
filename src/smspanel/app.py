@@ -95,6 +95,13 @@ def _load_config(app: Flask, config_name: Optional[str]) -> None:
 
     init_sms_service(config_service)
 
+    # Initialize rate limiter
+    from smspanel.utils.rate_limiter import init_rate_limiter
+
+    rate_per_sec = app.config.get("SMS_RATE_PER_SEC", 2.0)
+    burst_capacity = app.config.get("SMS_BURST_CAPACITY", 4)
+    init_rate_limiter(rate_per_sec=rate_per_sec, burst_capacity=burst_capacity)
+
 
 def _setup_logging(app: Flask) -> None:
     """Configure application logging.

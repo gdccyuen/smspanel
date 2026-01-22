@@ -28,7 +28,7 @@ class RateLimiter:
 
     def __init__(self, rate_per_sec: float = 2.0, burst_capacity: Optional[float] = None) -> None:
         self.rate_per_sec = rate_per_sec
-        self.burst_capacity = burst_capacity if burst_capacity is not None else rate_per_sec
+        self.burst_capacity = float(burst_capacity if burst_capacity is not None else rate_per_sec)
 
         self._tokens: float = self.burst_capacity
         self._last_update: float = time.monotonic()
