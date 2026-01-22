@@ -17,6 +17,7 @@ def test_message_job_status_fields(app):
     """Test Message model has job_status fields with correct defaults."""
     with app.app_context():
         from smspanel.models import Message, MessageJobStatus
+
         msg = Message(user_id=1, content="Test")
         db.session.add(msg)
         db.session.flush()

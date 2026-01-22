@@ -28,7 +28,24 @@
       "Bash(git rev-parse:*)",
       "Bash(python3:*)",
       "Bash(pip show:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:subagent-driven-development)",
+      "Bash(git worktree add /Users/gordon/Documents/repos/ccdemo/worktrees/retry-dlq HEAD)",
+      "Skill(superpowers:finishing-a-development-branch)",
+      "Bash(git worktree list)",
+      "Bash(git worktree add /Users/gordon/Documents/repos/ccdemo/worktrees/db-queue-perf main)",
+      "Bash(.venv/bin/python -m pytest tests/test_health.py -v)",
+      "Bash(.venv/bin/pip install psutil)",
+      "Bash(/Users/gordon/Documents/repos/ccdemo/.venv/bin/pip install psutil)",
+      "Bash(.venv/bin/python -m pytest -v)",
+      "Bash(.venv/bin/python -m pytest --ignore=tests/test_health.py -v)",
+      "Bash(git show 1b68f82 --no-stat)",
+      "Bash(.venv/bin/pytest tests/test_task_queue_rate_limit.py -v)",
+      "Bash(.venv/bin/pytest -v)",
+      "Bash(.venv/bin/python -m mypy src/smspanel/app.py src/smspanel/config/config.py src/smspanel/services/queue.py src/smspanel/utils/rate_limiter.py --ignore-missing-imports)",
+      "Bash(git show c523ecf --no-stat)",
+      "Bash(git show e456f24 --no-stat)"
     ]
   }
 }

@@ -59,8 +59,7 @@ def dashboard():
 
     # Get user's pending messages
     user_pending = Message.query.filter_by(
-        user_id=current_user.id,
-        job_status=MessageJobStatus.PENDING
+        user_id=current_user.id, job_status=MessageJobStatus.PENDING
     ).count()
 
     queue_status = {

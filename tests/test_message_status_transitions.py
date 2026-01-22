@@ -1,9 +1,6 @@
 """Tests for Message job status transitions in the queue worker."""
 
-import pytest
-
 from smspanel import db
-from smspanel.models import User, Message, MessageJobStatus, RecipientStatus
 
 
 def test_message_status_transitions_on_send(app):
