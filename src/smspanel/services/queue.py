@@ -5,10 +5,15 @@ import queue
 import threading
 from typing import Optional
 
+from smspanel import db
+from smspanel.models import Message, MessageJobStatus, RecipientStatus
 from smspanel.utils.rate_limiter import RateLimiter, get_rate_limiter
 
 
 logger = logging.getLogger(__name__)
+
+# Task function names that handle message sending
+SMS_TASK_NAMES = frozenset({"process_single_sms_task", "process_bulk_sms_task"})
 
 
 class TaskQueue:
@@ -66,19 +71,40 @@ class TaskQueue:
         while self.running:
             try:
                 task_func, args, kwargs = self.queue.get(timeout=1.0)
+                # Check if this is an SMS task that needs job status tracking
+                is_sms_task = (
+                    hasattr(task_func, "__name__")
+                    and task_func.__name__ in SMS_TASK_NAMES
+                    and args
+                    and isinstance(args[0], int)
+                )
+                message_id = args[0] if is_sms_task else None
+
                 try:
                     # Acquire rate limiter token before processing
                     if self.rate_limiter is not None:
                         self.rate_limiter.acquire()
                     with self.app.app_context():
+                        # Transition job_status to SENDING before processing
+                        if is_sms_task:
+                            self._update_message_job_status(message_id, MessageJobStatus.SENDING)
                         task_func(*args, **kwargs)
+                        # Update final job status after task completes
+                        if is_sms_task:
+                            self._update_message_final_status(message_id)
                 except Exception as e:
                     logger.error(f"Task execution error in worker {worker_id}: {e}", exc_info=True)
+                    # Mark message as FAILED if it was an SMS task
+                    if is_sms_task:
+                        try:
+                            self._update_message_final_status(message_id, MessageJobStatus.FAILED)
+                        except Exception:
+                            pass
                     # Try to capture to dead letter queue
                     try:
                         dlq = get_dead_letter_queue()
                         dlq.add(
-                            message_id=None,
+                            message_id=message_id,
                             recipient=str(args) if args else "unknown",
                             content=str(kwargs) if kwargs else str(task_func),
                             error_message=str(e),
@@ -93,6 +119,54 @@ class TaskQueue:
             except Exception as e:
                 logger.error(f"Worker {worker_id} error: {e}", exc_info=True)
         logger.info(f"Worker {worker_id} stopped")
+
+    def _update_message_job_status(self, message_id: int, status: MessageJobStatus) -> None:
+        """Update message job_status and clear queue_position.
+
+        Args:
+            message_id: Message ID to update.
+            status: New job status value.
+        """
+        message = db.session.get(Message, message_id)
+        if message:
+            message.job_status = status
+            message.queue_position = None
+            db.session.commit()
+
+    def _update_message_final_status(self, message_id: int, default_status: MessageJobStatus = None) -> None:
+        """Update message job_status to final state based on recipient results.
+
+        Args:
+            message_id: Message ID to update.
+            default_status: Status to use if message not found (e.g., FAILED on exception).
+        """
+        message = db.session.get(Message, message_id)
+        if not message:
+            return
+
+        success_count = message.recipients.filter_by(status=RecipientStatus.SENT).count()
+        failed_count = message.recipients.filter_by(status=RecipientStatus.FAILED).count()
+        pending_count = message.recipients.filter_by(status=RecipientStatus.PENDING).count()
+
+        if pending_count > 0:
+            # Still pending recipients, keep SENDING status
+            return
+
+        total = success_count + failed_count
+        if total == 0:
+            # No recipients were processed, use default or keep current
+            if default_status:
+                message.job_status = default_status
+            return
+
+        if success_count == total:
+            message.job_status = MessageJobStatus.COMPLETED
+        elif success_count > 0:
+            message.job_status = MessageJobStatus.PARTIAL
+        else:
+            message.job_status = MessageJobStatus.FAILED
+
+        db.session.commit()
 
     def start(self):
         """Start the background workers."""
