@@ -5,8 +5,8 @@ import queue
 import threading
 from typing import Optional
 
-from smspanel import db
 from smspanel.models import Message, MessageJobStatus, RecipientStatus
+from smspanel.utils.database import db_transaction
 from smspanel.utils.rate_limiter import RateLimiter, get_rate_limiter
 
 
@@ -127,46 +127,47 @@ class TaskQueue:
             message_id: Message ID to update.
             status: New job status value.
         """
-        message = db.session.get(Message, message_id)
-        if message:
-            message.job_status = status
-            message.queue_position = None
-            db.session.commit()
+        with db_transaction() as session:
+            message = session.get(Message, message_id)
+            if message:
+                message.job_status = status
+                message.queue_position = None
 
-    def _update_message_final_status(self, message_id: int, default_status: MessageJobStatus = None) -> None:
+    def _update_message_final_status(
+        self, message_id: int, default_status: MessageJobStatus = None
+    ) -> None:
         """Update message job_status to final state based on recipient results.
 
         Args:
             message_id: Message ID to update.
             default_status: Status to use if message not found (e.g., FAILED on exception).
         """
-        message = db.session.get(Message, message_id)
-        if not message:
-            return
+        with db_transaction() as session:
+            message = session.get(Message, message_id)
+            if not message:
+                return
 
-        success_count = message.recipients.filter_by(status=RecipientStatus.SENT).count()
-        failed_count = message.recipients.filter_by(status=RecipientStatus.FAILED).count()
-        pending_count = message.recipients.filter_by(status=RecipientStatus.PENDING).count()
+            success_count = message.recipients.filter_by(status=RecipientStatus.SENT).count()
+            failed_count = message.recipients.filter_by(status=RecipientStatus.FAILED).count()
+            pending_count = message.recipients.filter_by(status=RecipientStatus.PENDING).count()
 
-        if pending_count > 0:
-            # Still pending recipients, keep SENDING status
-            return
+            if pending_count > 0:
+                # Still pending recipients, keep SENDING status
+                return
 
-        total = success_count + failed_count
-        if total == 0:
-            # No recipients were processed, use default or keep current
-            if default_status:
-                message.job_status = default_status
-            return
+            total = success_count + failed_count
+            if total == 0:
+                # No recipients were processed, use default or keep current
+                if default_status:
+                    message.job_status = default_status
+                return
 
-        if success_count == total:
-            message.job_status = MessageJobStatus.COMPLETED
-        elif success_count > 0:
-            message.job_status = MessageJobStatus.PARTIAL
-        else:
-            message.job_status = MessageJobStatus.FAILED
-
-        db.session.commit()
+            if success_count == total:
+                message.job_status = MessageJobStatus.COMPLETED
+            elif success_count > 0:
+                message.job_status = MessageJobStatus.PARTIAL
+            else:
+                message.job_status = MessageJobStatus.FAILED
 
     def start(self):
         """Start the background workers."""
