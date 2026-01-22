@@ -213,6 +213,13 @@ def get_message(message_id: int) -> tuple:
             "recipient_count": message.recipient_count,
             "success_count": message.success_count,
             "failed_count": message.failed_count,
+            "job_status": message.job_status,
+            "queue_position": message.queue_position,
+            "estimated_complete_at": (
+                message.estimated_complete_at.isoformat()
+                if message.estimated_complete_at
+                else None
+            ),
         }
     )
 
