@@ -7,6 +7,8 @@ api_bp = Blueprint("api", __name__)
 # Import routes to register them
 from . import sms  # noqa: E402
 from . import health  # noqa: E402
+from . import queue  # noqa: E402
 
 api_bp.register_blueprint(sms.api_sms_bp)
 api_bp.register_blueprint(health.api_health_bp)
+api_bp.register_blueprint(queue.api_queue_bp)
