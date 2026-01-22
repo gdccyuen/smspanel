@@ -37,11 +37,11 @@ class DeadLetterStatus(str, Enum):
 class MessageJobStatus(str, Enum):
     """Message job status for tracking bulk send progress."""
 
-    PENDING = "pending"     # Waiting in queue
-    SENDING = "sending"     # Currently being sent
-    COMPLETED = "completed" # All recipients sent
-    PARTIAL = "partial"     # Some failed
-    FAILED = "failed"       # All failed
+    PENDING = "pending"  # Waiting in queue
+    SENDING = "sending"  # Currently being sent
+    COMPLETED = "completed"  # All recipients sent
+    PARTIAL = "partial"  # Some failed
+    FAILED = "failed"  # All failed
 
 
 class User(UserMixin, db.Model):
