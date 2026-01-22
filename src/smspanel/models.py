@@ -34,6 +34,16 @@ class DeadLetterStatus(str, Enum):
     ABANDONED = "abandoned"
 
 
+class MessageJobStatus(str, Enum):
+    """Message job status for tracking bulk send progress."""
+
+    PENDING = "pending"     # Waiting in queue
+    SENDING = "sending"     # Currently being sent
+    COMPLETED = "completed" # All recipients sent
+    PARTIAL = "partial"     # Some failed
+    FAILED = "failed"       # All failed
+
+
 class User(UserMixin, db.Model):
     """User model for authentication."""
 
@@ -87,6 +97,12 @@ class Message(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     sent_at = db.Column(db.DateTime, nullable=True)
     hkt_response = db.Column(db.Text, nullable=True)
+    # Job tracking fields for bulk send status
+    job_status = db.Column(
+        db.String(20), default=MessageJobStatus.PENDING, index=True
+    )  # See MessageJobStatus enum
+    queue_position = db.Column(db.Integer, nullable=True)  # NULL when sending
+    estimated_complete_at = db.Column(db.DateTime, nullable=True)
 
     recipients = db.relationship(
         "Recipient", backref="message", lazy="dynamic", cascade="all, delete-orphan"
@@ -106,6 +122,15 @@ class Message(db.Model):
     def failed_count(self) -> int:
         """Get the number of failed SMS."""
         return self.recipients.filter_by(status=RecipientStatus.FAILED).count()
+
+    @property
+    def is_complete(self) -> bool:
+        """Check if message sending is complete."""
+        return self.job_status in (
+            MessageJobStatus.COMPLETED,
+            MessageJobStatus.PARTIAL,
+            MessageJobStatus.FAILED,
+        )
 
     def __repr__(self) -> str:
         return f"<Message {self.id}: {self.content[:30]}...>"
