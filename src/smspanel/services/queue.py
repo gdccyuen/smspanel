@@ -5,7 +5,7 @@ import queue
 import threading
 from typing import Optional
 
-from smspanel.utils.rate_limiter import get_rate_limiter
+from smspanel.utils.rate_limiter import RateLimiter, get_rate_limiter
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class TaskQueue:
         self.num_workers = num_workers
         self.running = False
         self.app = None
-        self.rate_limiter = None
+        self.rate_limiter: Optional[RateLimiter] = None
 
     def set_app(self, app):
         """Set the Flask app for app context.
