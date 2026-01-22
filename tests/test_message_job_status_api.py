@@ -1,7 +1,7 @@
 """Tests for job status fields in message API endpoint."""
 
 from smspanel import db
-from smspanel.models import User, Message, Recipient, MessageJobStatus
+from smspanel.models import User, Message, MessageJobStatus
 
 
 def test_get_message_includes_job_status(app):
@@ -22,7 +22,9 @@ def test_get_message_includes_job_status(app):
         db.session.commit()
 
         with app.test_client() as client:
-            response = client.get(f"/api/sms/{msg.id}", headers={"Authorization": f"Bearer {user.token}"})
+            response = client.get(
+                f"/api/sms/{msg.id}", headers={"Authorization": f"Bearer {user.token}"}
+            )
             assert response.status_code == 200
             data = response.get_json()
             assert data["success"] is True
