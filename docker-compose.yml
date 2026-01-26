@@ -12,6 +12,7 @@ services:
     ports:
       - "3570:3570"
     environment:
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=${DATABASE_URL}

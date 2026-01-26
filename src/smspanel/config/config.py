@@ -25,6 +25,11 @@ class Config:
     # Flask - SECRET_KEY must be set in production!
     SECRET_KEY = os.getenv("SECRET_KEY")
 
+    # Flask-WTF CSRF Protection
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = os.getenv("SECRET_KEY")  # Same as SECRET_KEY
+    WTF_CSRF_TIME_LIMIT = 3600  # 1 hour in seconds
+
     # Database
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///sms.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -67,6 +72,8 @@ class DevelopmentConfig(Config):
                 "Set SECRET_KEY environment variable for production!"
             )
             self.SECRET_KEY = "dev-secret-key-change-in-production"
+            # Also set CSRF secret key to the same value
+            self.WTF_CSRF_SECRET_KEY = self.SECRET_KEY
 
 
 class ProductionConfig(Config):
