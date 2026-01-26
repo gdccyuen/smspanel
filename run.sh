@@ -17,13 +17,12 @@
 #podman compose up -d
 
 podman ps -a
-podman rm -fa
 
 # Stop and remove existing containers
 podman-compose down
 
 # Rebuild with the new changes and start fresh
-podman-compose up -d --build
+podman-compose up -d
 
 sleep 30
 
