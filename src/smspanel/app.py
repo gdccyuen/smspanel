@@ -81,7 +81,6 @@ def _load_config(app: Flask, config_name: Optional[str]) -> None:
     """
     import os
     import tempfile
-    import stat
     from smspanel.config import config as config_dict
 
     app.config.from_object(config_dict.get(config_name, config_dict["default"]))
