@@ -44,10 +44,6 @@
             {% endif %}
         {% endwith %}
 
-        <form method="POST" style="display: none;">
-            {{ csrf_token() }}
-        </form>
-
         {% block content %}{% endblock %}
     </div>
 
