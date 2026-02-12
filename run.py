@@ -8,11 +8,15 @@ src_dir = os.path.join(os.path.dirname(__file__), 'src')
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from smspanel import create_app
+from smspanel import create_app  # noqa: E402
 
 app = create_app(os.getenv("FLASK_ENV", "development"))
 
 if __name__ == "__main__":
-    # Bind to 0.0.0.0 to make it accessible from outside the container
-    # Use localhost only in development for security
-    app.run(host="0.0.0.0", port=3570, debug=True)
+    port = int(os.getenv("SMSPANEL_PORT", "3570"))
+    host = os.getenv("SMSPANEL_HOST", "127.0.0.1")
+    debug = os.getenv("SMSPANEL_DEBUG", "false").lower() == "true"
+
+    print(f"Starting sms panel on http://{host}:{port}")
+    
+    app.run(host=host, port=port, debug=debug)
